@@ -55,7 +55,7 @@ export default function TaskPage() {
   const [result, setResult] = useState<{
     status: string;
     score: number;
-    testResults?: Array<{ testCase: number; status: string; output?: string; expected?: string }>;
+    testResults?: Array<{ testCase: number; status: string; output?: string; expected?: string; isHidden?: boolean }>;
     feedback?: string;
   } | null>(null);
 
