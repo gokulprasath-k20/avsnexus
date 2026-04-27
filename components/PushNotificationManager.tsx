@@ -21,10 +21,15 @@ export default function PushNotificationManager() {
         const token = await requestForToken();
         if (token) {
           // Send token to backend
-          try {
+            const jwtToken = localStorage.getItem('token');
+            if (!jwtToken) return;
+            
             await fetch(getApiUrl('/api/users/fcm-token'), {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+              },
               body: JSON.stringify({ token }),
             });
           } catch (error) {

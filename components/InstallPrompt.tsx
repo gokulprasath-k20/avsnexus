@@ -20,12 +20,11 @@ export default function InstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Show prompt after 10 seconds
       setTimeout(() => {
         if (!localStorage.getItem('pwaPromptDismissed')) {
           setShowPrompt(true);
         }
-      }, 10000);
+      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
