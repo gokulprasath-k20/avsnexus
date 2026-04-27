@@ -23,45 +23,38 @@ export default function SuperAdminDashboard() {
   }, []);
 
   return (
-    <AppShell title="Dashboard" subtitle="System Overview">
+    <AppShell title="SuperAdmin" subtitle="System Overview">
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-          <div className="spinner" style={{ width: '32px', height: '32px' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <div className="spinner" style={{ width: '20px', height: '20px' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           {/* Students Card */}
           <Link href="/superadmin/students" style={{ textDecoration: 'none' }}>
             <div
               style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: '12px',
-                padding: '32px',
+                borderRadius: '8px',
+                padding: '16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '24px',
+                gap: '12px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'background 0.1s ease',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-strong)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--surface)'}
             >
-              <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Users size={32} />
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Users size={20} />
               </div>
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--foreground)', marginBottom: '8px' }}>Students</h2>
-                <p style={{ fontSize: '28px', fontWeight: '700', color: 'var(--foreground)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Students</h2>
+                <p style={{ fontSize: '20px', fontWeight: '800', color: 'var(--foreground)', lineHeight: 1 }}>
                   {stats.totalStudents}
                 </p>
-                <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Manage student records and performance</p>
               </div>
             </div>
           </Link>
@@ -72,32 +65,25 @@ export default function SuperAdminDashboard() {
               style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: '12px',
-                padding: '32px',
+                borderRadius: '8px',
+                padding: '16px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '24px',
+                gap: '12px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'background 0.1s ease',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-strong)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--surface)'}
             >
-              <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <UserCog size={32} />
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <UserCog size={20} />
               </div>
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--foreground)', marginBottom: '8px' }}>Admins</h2>
-                <p style={{ fontSize: '28px', fontWeight: '700', color: 'var(--foreground)', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Admins</h2>
+                <p style={{ fontSize: '20px', fontWeight: '800', color: 'var(--foreground)', lineHeight: 1 }}>
                   {stats.totalAdmins}
                 </p>
-                <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>View module admins and their tasks</p>
               </div>
             </div>
           </Link>
