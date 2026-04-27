@@ -17,25 +17,30 @@ export default function InstallPrompt() {
       return;
     }
 
+    // Always show prompt after 2 seconds to ensure visibility
+    const timer = setTimeout(() => {
+      setShowPrompt(true);
+    }, 2000);
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setTimeout(() => {
-        if (!localStorage.getItem('pwaPromptDismissed')) {
-          setShowPrompt(true);
-        }
-      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('beforeinstallprompt', handler);
     };
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // Fallback if event was missed or browser doesn't support it
+      alert("To install: Tap your browser's menu (⋮ or Share) and select 'Add to Home Screen' or 'Install App'.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {

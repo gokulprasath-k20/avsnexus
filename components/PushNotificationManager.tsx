@@ -17,6 +17,28 @@ export default function PushNotificationManager() {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'default') {
         setShowBell(true);
+      } else if (Notification.permission === 'granted') {
+        // If already granted, ensure we get the token and save it
+        const fetchExistingToken = async () => {
+          const token = await requestForToken();
+          if (token) {
+            try {
+              const jwtToken = localStorage.getItem('token');
+              if (!jwtToken) return;
+              await fetch(getApiUrl('/api/users/fcm-token'), {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${jwtToken}`
+                },
+                body: JSON.stringify({ token }),
+              });
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        };
+        fetchExistingToken();
       }
     }
   }, [user]);
