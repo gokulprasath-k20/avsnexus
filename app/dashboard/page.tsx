@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 color: stat.color,
               }}
             >
-              {React.cloneElement(stat.icon as React.ReactElement, { size: 12 })}
+              {React.cloneElement(stat.icon as React.ReactElement<any>, { size: 12 })}
             </div>
           </div>
         ))}
