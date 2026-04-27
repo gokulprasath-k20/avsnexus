@@ -28,6 +28,11 @@ try {
 
     self.registration.showNotification(notificationTitle, notificationOptions);
   });
+
+  // PWA requires a fetch handler to trigger the install prompt
+  self.addEventListener('fetch', function(event) {
+    // We don't actually need to intercept anything, just having the listener satisfies the PWA install criteria
+  });
 } catch (error) {
   console.error('Failed to initialize Firebase Messaging SW', error);
 }
