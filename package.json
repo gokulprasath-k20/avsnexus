@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "mobile:build": "powershell -Command \"Rename-Item app/api api_routes; try { npm run build } finally { Rename-Item api_routes app/api }; npx cap sync\"",
+    "mobile:build": "powershell -Command \"$env:BUILD_MODE='export'; Rename-Item app/api api_routes; try { npm run build } finally { Rename-Item api_routes app/api }; npx cap sync\"",
     "start": "next start"
   },
   "dependencies": {
