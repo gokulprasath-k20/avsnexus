@@ -23,7 +23,7 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
       >
         <TopBar title={title} subtitle={subtitle} />
         <main
-          className="animate-fade-up px-2 py-3 md:px-4 md:py-4 w-full max-w-7xl mx-auto"
+          className="animate-fade-up px-1.5 py-2 md:px-3 md:py-3 w-full max-w-7xl mx-auto"
           style={{
             flex: 1,
           }}

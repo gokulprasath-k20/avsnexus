@@ -17,9 +17,9 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
 
   return (
     <header
-      className="px-2 md:px-4"
+      className="px-1.5 md:px-3"
       style={{
-        height: '48px',
+        height: '34px',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
@@ -40,16 +40,18 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
           <h1
             className="truncate max-w-[120px] sm:max-w-none"
             style={{
-              fontSize: '12px',
-              fontWeight: '700',
+              fontSize: '10px',
+              fontWeight: '900',
               color: 'var(--foreground)',
-              lineHeight: 1.1,
+              lineHeight: 1,
+              textTransform: 'uppercase',
+              letterSpacing: '-0.01em',
             }}
           >
             {title}
           </h1>
           {subtitle && (
-            <p className="hidden sm:block" style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '0px' }}>
+            <p className="hidden sm:block" style={{ fontSize: '8px', color: 'var(--muted)', marginTop: '0px', fontWeight: '700', textTransform: 'uppercase' }}>
               {subtitle}
             </p>
           )}
@@ -70,10 +72,10 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
         
         <button
           onClick={toggleTheme}
-          className="w-7 h-7 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] flex items-center justify-center cursor-pointer transition-all hover:bg-[var(--surface-hover)]"
+          className="w-6 h-6 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] flex items-center justify-center cursor-pointer transition-all hover:bg-[var(--surface-hover)]"
           title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
-          {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
+          {theme === 'light' ? <Moon size={11} /> : <Sun size={11} />}
         </button>
 
         <NotificationBell />

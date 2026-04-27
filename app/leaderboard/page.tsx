@@ -35,25 +35,25 @@ export default function LeaderboardPage() {
   return (
     <AppShell title="Leaderboard" subtitle="Global rankings across all modules">
       <div style={{ maxWidth: '800px' }}>
-        {/* Top 3 podium */}
+        {/* Top 3 podium - Compact */}
         {leaderboard.length >= 3 && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '12px', marginBottom: '24px', padding: '16px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '8px', marginBottom: '16px', padding: '8px 0' }}>
             {[leaderboard[1], leaderboard[0], leaderboard[2]].map((entry, podiumIdx) => {
               const actualRank = podiumIdx === 0 ? 2 : podiumIdx === 1 ? 1 : 3;
-              const heights = [70, 100, 50];
+              const heights = [40, 60, 30];
               const colors = ['#94a3b8', '#f59e0b', '#cd7f32'];
               const initials = entry.student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
               return (
-                <div key={entry.student._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700' }}>
+                <div key={entry.student._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: '900' }}>
                     {initials}
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--foreground)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.student.name}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: '600' }}>{entry.totalPoints} <span style={{fontSize: '8px'}}>PTS</span></div>
+                    <div style={{ fontSize: '9px', fontWeight: '900', color: 'var(--foreground)', maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{entry.student.name.split(' ')[0]}</div>
+                    <div style={{ fontSize: '10px', fontWeight: '900', color: colors[podiumIdx] }}>{entry.totalPoints}</div>
                   </div>
-                  <div style={{ width: '70px', height: `${heights[podiumIdx]}px`, background: colors[podiumIdx], borderRadius: '4px 4px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '16px', fontWeight: '800', color: 'white' }}>#{actualRank}</span>
+                  <div style={{ width: '50px', height: `${heights[podiumIdx]}px`, background: colors[podiumIdx], borderRadius: '3px 3px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '900', color: 'white' }}>#{actualRank}</span>
                   </div>
                 </div>
               );
@@ -61,22 +61,20 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        {/* Full table */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '40px 1fr 100px', gap: '12px', alignItems: 'center', background: 'var(--surface-hover)' }}>
-            {['Rank', 'Student', 'Points'].map((h) => (
-              <span key={h} style={{ fontSize: '9px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: h === 'Points' ? 'right' : 'left' }}>{h}</span>
+        {/* Full table - High Density */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+          <div style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '30px 1fr 60px', gap: '8px', alignItems: 'center', background: 'var(--surface-hover)' }}>
+            {['#', 'Student', 'Pts'].map((h) => (
+              <span key={h} style={{ fontSize: '8px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: h === 'Pts' ? 'right' : 'left' }}>{h}</span>
             ))}
           </div>
 
           {loading ? (
-            <div style={{ padding: '30px', textAlign: 'center' }}>
-              <div className="spinner" style={{ width: '16px', height: '16px', margin: '0 auto' }} />
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <div className="spinner" style={{ width: '14px', height: '14px', margin: '0 auto' }} />
             </div>
           ) : leaderboard.length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>
-              No rankings yet.
-            </div>
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', fontSize: '10px', fontWeight: '700' }}>EMPTY</div>
           ) : (
             leaderboard.map((entry) => {
               const initials = entry.student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -84,37 +82,38 @@ export default function LeaderboardPage() {
                 <div
                   key={entry.student._id}
                   style={{
-                    padding: '8px 16px',
+                    padding: '5px 10px',
                     borderBottom: '1px solid var(--border)',
                     display: 'grid',
-                    gridTemplateColumns: '40px 1fr 100px',
-                    gap: '12px',
+                    gridTemplateColumns: '30px 1fr 60px',
+                    gap: '8px',
                     alignItems: 'center',
                     transition: 'background 0.1s',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-hover)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{getRankIcon(entry.rank)}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', fontSize: '10px', fontWeight: '900', color: entry.rank <= 3 ? 'var(--warning)' : 'var(--muted)' }}>
+                    {entry.rank}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <div style={{
-                      width: '24px', height: '24px', borderRadius: '50%',
+                      width: '20px', height: '20px', borderRadius: '4px',
                       background: 'var(--foreground)', color: 'var(--background)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '9px', fontWeight: '700', flexShrink: 0,
+                      fontSize: '8px', fontWeight: '900', flexShrink: 0,
                     }}>
                       {initials}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{entry.student.name}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{entry.student.email}</div>
+                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', lineHeight: '1.1', textTransform: 'uppercase' }}>{entry.student.name}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{entry.student.email}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--foreground)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '900', color: 'var(--foreground)' }}>
                       {entry.totalPoints.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '8px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase' }}>points</div>
                   </div>
                 </div>
               );

@@ -79,92 +79,81 @@ export default function DashboardPage() {
       title={`Good day, ${user?.name?.split(' ')[0]} 👋`}
       subtitle={`Student • ${user?.category === 'elite' ? 'Elite' : 'Non-Elite'} • ${user?.department || 'Unassigned'} Department • Year ${user?.year || '1'}`}
     >
-      {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+      {/* Stats row - Ultra Compact */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 mb-3">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2.5 sm:p-3 flex items-start justify-between transition-all hover:shadow-sm"
+            className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 flex items-center justify-between transition-all hover:border-[var(--border-strong)]"
           >
             <div>
-              <p className="text-[9px] sm:text-[10px] text-[var(--muted)] mb-0.5 uppercase tracking-wider font-bold">
+              <p className="text-[8px] text-[var(--muted)] mb-0 uppercase tracking-widest font-black">
                 {stat.label}
               </p>
-              <p className="text-base sm:text-lg font-extrabold text-[var(--foreground)] tracking-tight">
+              <p className="text-sm font-black text-[var(--foreground)] tracking-tight leading-none mt-0.5">
                 {stat.value}
               </p>
             </div>
             <div
-              className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center shrink-0"
+              className="w-5 h-5 rounded flex items-center justify-center shrink-0"
               style={{
-                background: `${stat.color}15`,
+                background: `${stat.color}10`,
                 color: stat.color,
               }}
             >
-              {stat.icon}
+              {React.cloneElement(stat.icon as React.ReactElement, { size: 12 })}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modules section */}
+      {/* Modules section - High Density */}
       <div>
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center justify-between mb-1.5">
           <div>
-            <h2 className="text-xs sm:text-sm font-extrabold text-[var(--foreground)] uppercase tracking-tight">
+            <h2 className="text-[9px] font-black text-[var(--muted)] uppercase tracking-widest">
               Available Modules
             </h2>
           </div>
           <Link
             href="/modules"
-            className="text-[10px] sm:text-[11px] font-bold text-[var(--primary)] flex items-center gap-1 hover:underline"
+            className="text-[9px] font-black text-[var(--primary)] flex items-center gap-1 hover:underline uppercase"
           >
-            View all <ArrowRight size={10} />
+            All <ArrowRight size={10} strokeWidth={3} />
           </Link>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {[...Array(3)].map((_, i) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
+            {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="h-24 sm:h-28 bg-[var(--surface)] border border-[var(--border)] rounded-lg animate-pulse"
+                className="h-16 bg-[var(--surface)] border border-[var(--border)] rounded animate-pulse"
               />
             ))}
           </div>
         ) : modules.length === 0 ? (
-          <div className="text-center py-8 sm:py-10 bg-[var(--surface)] rounded-lg border border-[var(--border)]">
-            <BookOpen size={20} className="text-[var(--muted)] mx-auto mb-1.5" />
-            <p className="text-[var(--muted)] text-[11px] px-4">
-              No modules available yet.
-            </p>
+          <div className="text-center py-6 bg-[var(--surface)] rounded-lg border border-[var(--border)]">
+            <p className="text-[var(--muted)] text-[9px] font-black uppercase">No modules</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {modules.slice(0, 6).map((module) => (
-              <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
+            {modules.slice(0, 8).map((module) => (
+              <Link key={module._id} href={`/modules/${module._id}`} className="group block">
                 <div
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 sm:p-4 h-full transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm active:scale-[0.98]"
+                  className="bg-[var(--surface)] border border-[var(--border)] rounded p-2 h-full transition-all duration-300 hover:border-[var(--foreground)] active:scale-[0.98] flex items-center gap-2"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-lg sm:text-xl group-hover:scale-105 transition-transform duration-300 origin-left">
-                      {module.icon || '📚'}
-                    </div>
-                    <span
-                      className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase tracking-tighter bg-[var(--surface-hover)] border border-[var(--border)]"
-                      style={{
-                        color: moduleTypeColors[module.type] || '#64748b',
-                      }}
-                    >
-                      {moduleTypeLabels[module.type] || module.type}
-                    </span>
+                  <div className="text-base group-hover:scale-110 transition-transform flex-shrink-0">
+                    {module.icon || '📚'}
                   </div>
-                  <h3 className="text-[11px] sm:text-[12px] font-bold text-[var(--foreground)] mb-1 leading-tight">
-                    {module.name}
-                  </h3>
-                  <p className="text-[10px] text-[var(--muted)] leading-tight mb-0 line-clamp-2 min-h-[1.2rem]">
-                    {module.description}
-                  </p>
+                  <div className="overflow-hidden">
+                    <h3 className="text-[10px] font-black text-[var(--foreground)] truncate uppercase">
+                      {module.name}
+                    </h3>
+                    <p className="text-[8px] text-[var(--muted)] font-bold truncate">
+                      {moduleTypeLabels[module.type] || module.type}
+                    </p>
+                  </div>
                 </div>
               </Link>
             ))}

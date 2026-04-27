@@ -68,7 +68,7 @@ export default function Sidebar() {
     <aside
       className="hidden md:flex"
       style={{
-        width: '190px',
+        width: '160px',
         minHeight: '100vh',
         background: 'var(--surface)',
         borderRight: '1px solid var(--border)',
@@ -80,10 +80,10 @@ export default function Sidebar() {
         zIndex: 40,
       }}
     >
-      {/* Logo */}
+      {/* Logo - Compact */}
       <div
         style={{
-          padding: '12px 14px 10px',
+          padding: '8px 10px',
           borderBottom: '1px solid var(--border)',
         }}
       >
@@ -91,10 +91,10 @@ export default function Sidebar() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div
               style={{
-                width: '24px',
-                height: '24px',
+                width: '20px',
+                height: '20px',
                 background: 'var(--foreground)',
-                borderRadius: '5px',
+                borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -103,8 +103,8 @@ export default function Sidebar() {
               <span
                 style={{
                   color: 'var(--background)',
-                  fontSize: '10px',
-                  fontWeight: '800',
+                  fontSize: '9px',
+                  fontWeight: '900',
                   letterSpacing: '-0.02em',
                 }}
               >
@@ -114,15 +114,16 @@ export default function Sidebar() {
             <div>
               <div
                 style={{
-                  fontSize: '12px',
-                  fontWeight: '700',
+                  fontSize: '11px',
+                  fontWeight: '900',
                   color: 'var(--foreground)',
-                  letterSpacing: '-0.01em',
+                  letterSpacing: '-0.02em',
+                  textTransform: 'uppercase',
                 }}
               >
-                AVS Nexus
+                Nexus
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '500' }}>
+              <div style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '900', textTransform: 'uppercase' }}>
                 {user.role === 'superAdmin' ? 'Super' : user.role === 'moduleAdmin' ? 'Admin' : 'Student'}
               </div>
             </div>
@@ -130,22 +131,9 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav style={{ flex: 1, padding: '6px 6px', overflowY: 'auto' }}>
-        <div style={{ marginBottom: '2px' }}>
-          <div
-            style={{
-              fontSize: '9px',
-              fontWeight: '700',
-              color: 'var(--muted)',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              padding: '0 8px',
-              marginBottom: '4px',
-            }}
-          >
-            Menu
-          </div>
+      {/* Navigation - High Density */}
+      <nav style={{ flex: 1, padding: '4px', overflowY: 'auto' }}>
+        <div style={{ marginBottom: '1px' }}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -156,15 +144,17 @@ export default function Sidebar() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '5px 8px',
-                    borderRadius: '5px',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
                     marginBottom: '1px',
                     background: isActive ? 'var(--foreground)' : 'transparent',
                     color: isActive ? 'var(--background)' : 'var(--muted-fg)',
                     cursor: 'pointer',
                     transition: 'all 0.1s ease',
-                    fontSize: '12px',
-                    fontWeight: isActive ? '600' : '500',
+                    fontSize: '11px',
+                    fontWeight: '900',
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.01em',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
@@ -179,7 +169,7 @@ export default function Sidebar() {
                     }
                   }}
                 >
-                  <Icon size={13} strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon size={12} strokeWidth={isActive ? 3 : 2} />
                   {item.label}
                 </div>
               </Link>
@@ -188,10 +178,10 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* Bottom */}
+      {/* Bottom - Ultra Compact */}
       <div
         style={{
-          padding: '6px',
+          padding: '4px',
           borderTop: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
@@ -205,15 +195,17 @@ export default function Sidebar() {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px 8px',
-            borderRadius: '5px',
+            padding: '4px 8px',
+            borderRadius: '4px',
             background: 'transparent',
             border: 'none',
             color: 'var(--muted-fg)',
             cursor: 'pointer',
-            fontSize: '12px',
+            fontSize: '10px',
+            fontWeight: '800',
             width: '100%',
             transition: 'all 0.1s ease',
+            textTransform: 'uppercase',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--surface-hover)';
@@ -224,8 +216,8 @@ export default function Sidebar() {
             e.currentTarget.style.color = 'var(--muted-fg)';
           }}
         >
-          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-          {theme === 'light' ? 'Dark mode' : 'Light mode'}
+          {theme === 'light' ? <Moon size={12} /> : <Sun size={12} />}
+          {theme === 'light' ? 'Dark' : 'Light'}
         </button>
 
         {/* Logout */}
@@ -234,16 +226,18 @@ export default function Sidebar() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '8px 12px',
-            borderRadius: '6px',
+            gap: '6px',
+            padding: '4px 8px',
+            borderRadius: '4px',
             background: 'transparent',
             border: 'none',
             color: 'var(--muted-fg)',
             cursor: 'pointer',
-            fontSize: '13.5px',
+            fontSize: '10px',
+            fontWeight: '800',
             width: '100%',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.1s ease',
+            textTransform: 'uppercase',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--surface-hover)';
@@ -254,34 +248,34 @@ export default function Sidebar() {
             e.currentTarget.style.color = 'var(--muted-fg)';
           }}
         >
-          <LogOut size={16} />
-          Sign out
+          <LogOut size={12} />
+          Logout
         </button>
 
-        {/* User avatar */}
+        {/* User avatar - Shrunk */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '10px 12px',
-            marginTop: '4px',
-            borderRadius: '6px',
+            gap: '6px',
+            padding: '6px 8px',
+            marginTop: '2px',
+            borderRadius: '4px',
             background: 'var(--surface-hover)',
           }}
         >
           <div
             style={{
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              borderRadius: '4px',
               background: 'var(--foreground)',
               color: 'var(--background)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '11px',
-              fontWeight: '600',
+              fontSize: '10px',
+              fontWeight: '900',
               flexShrink: 0,
             }}
           >
@@ -290,23 +284,26 @@ export default function Sidebar() {
           <div style={{ overflow: 'hidden', flex: 1 }}>
             <div
               style={{
-                fontSize: '12.5px',
-                fontWeight: '500',
+                fontSize: '10px',
+                fontWeight: '900',
                 color: 'var(--foreground)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                lineHeight: '1',
+                textTransform: 'uppercase',
               }}
             >
-              {user.name}
+              {user.name.split(' ')[0]}
             </div>
             <div
               style={{
-                fontSize: '11px',
+                fontSize: '8px',
                 color: 'var(--muted)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontWeight: '700',
               }}
             >
               {user.email}
