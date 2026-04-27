@@ -23,21 +23,21 @@ export default function ProfilePage() {
   return (
     <AppShell title="Profile" subtitle="Your account information">
       <div className="max-w-2xl mx-auto md:mx-0">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6 transition-all hover:shadow-sm">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[var(--foreground)] text-[var(--background)] flex items-center justify-center text-3xl font-bold shrink-0 shadow-lg">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-4 transition-all hover:shadow-sm">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--foreground)] text-[var(--background)] flex items-center justify-center text-xl font-black shrink-0 shadow-md">
             {initials}
           </div>
           <div className="text-center sm:text-left flex-1">
-            <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight mb-1">
+            <h2 className="text-lg font-black text-[var(--foreground)] tracking-tight mb-0.5">
               {user.name}
             </h2>
-            <p className="text-sm text-[var(--muted)] mb-4">{user.email}</p>
-            <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-full border border-[var(--primary)]/20">
+            <p className="text-xs text-[var(--muted)] mb-3 font-medium">{user.email}</p>
+            <div className="flex flex-wrap justify-center sm:justify-start gap-1.5">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-md border border-[var(--primary)]/20">
                 {roleLabels[user.role] || user.role}
               </span>
               {user.role === 'student' && (
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--success)] bg-[var(--success)]/10 px-3 py-1 rounded-full border border-[var(--success)]/20">
+                <span className="text-[9px] font-black uppercase tracking-wider text-[var(--success)] bg-[var(--success)]/10 px-2 py-0.5 rounded-md border border-[var(--success)]/20">
                   {user.category === 'elite' ? 'Elite Student' : 'Student'}
                 </span>
               )}
@@ -45,22 +45,22 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)] shadow-sm">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden divide-y divide-[var(--border)]">
           {[
-            { icon: <User size={18} />, label: 'Full Name', value: user.name },
-            { icon: <Mail size={18} />, label: 'Email Address', value: user.email },
-            { icon: <Shield size={18} />, label: 'Account Level', value: roleLabels[user.role] || user.role },
-            { icon: <Star size={18} />, label: 'Achievement Points', value: `${user.totalPoints?.toLocaleString() || 0} points` },
+            { icon: <User size={14} />, label: 'Full Name', value: user.name },
+            { icon: <Mail size={14} />, label: 'Email Address', value: user.email },
+            { icon: <Shield size={14} />, label: 'Account Level', value: roleLabels[user.role] || user.role },
+            { icon: <Star size={14} />, label: 'Achievements', value: `${user.totalPoints?.toLocaleString() || 0} pts` },
           ].map(({ icon, label, value }) => (
-            <div key={label} className="p-4 sm:p-5 flex items-center gap-4 hover:bg-[var(--surface-hover)] transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] shrink-0 shadow-sm">
+            <div key={label} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-[var(--surface-hover)] transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-[var(--background)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] shrink-0 shadow-sm">
                 {icon}
               </div>
               <div className="flex-1">
-                <div className="text-[10px] text-[var(--muted)] uppercase font-bold tracking-widest mb-0.5">
+                <div className="text-[9px] text-[var(--muted)] uppercase font-black tracking-widest mb-0.5">
                   {label}
                 </div>
-                <div className="text-sm sm:text-base text-[var(--foreground)] font-semibold tracking-tight">
+                <div className="text-xs text-[var(--foreground)] font-bold tracking-tight">
                   {value}
                 </div>
               </div>

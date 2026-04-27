@@ -17,6 +17,7 @@ import {
   Users,
   BarChart3,
   Layers,
+  Terminal,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -25,6 +26,7 @@ import NotificationBell from './NotificationBell';
 const studentNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/modules', label: 'Modules', icon: BookOpen },
+  { href: '/playground', label: 'Playground', icon: Terminal },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/profile', label: 'Profile', icon: User },
 ];
@@ -38,6 +40,7 @@ const superAdminNav = [
   { href: '/superadmin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/superadmin/students', label: 'Students', icon: Users },
   { href: '/superadmin/admins', label: 'Admins', icon: BookOpen },
+  { href: '/playground', label: 'Playground', icon: Terminal },
 ];
 
 export default function Sidebar() {
