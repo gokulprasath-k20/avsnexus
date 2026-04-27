@@ -63,12 +63,12 @@ export default function Sidebar() {
 
   return (
     <aside
+      className="hidden md:flex"
       style={{
-        width: '240px',
+        width: '190px',
         minHeight: '100vh',
         background: 'var(--surface)',
         borderRight: '1px solid var(--border)',
-        display: 'flex',
         flexDirection: 'column',
         position: 'fixed',
         left: 0,
@@ -80,18 +80,18 @@ export default function Sidebar() {
       {/* Logo */}
       <div
         style={{
-          padding: '20px 24px 16px',
+          padding: '12px 14px 10px',
           borderBottom: '1px solid var(--border)',
         }}
       >
         <Link href={user.role === 'student' ? '/dashboard' : user.role === 'superAdmin' ? '/superadmin' : '/admin/modules'}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '24px',
+                height: '24px',
                 background: 'var(--foreground)',
-                borderRadius: '8px',
+                borderRadius: '5px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -100,8 +100,8 @@ export default function Sidebar() {
               <span
                 style={{
                   color: 'var(--background)',
-                  fontSize: '14px',
-                  fontWeight: '700',
+                  fontSize: '10px',
+                  fontWeight: '800',
                   letterSpacing: '-0.02em',
                 }}
               >
@@ -111,7 +111,7 @@ export default function Sidebar() {
             <div>
               <div
                 style={{
-                  fontSize: '14px',
+                  fontSize: '12px',
                   fontWeight: '700',
                   color: 'var(--foreground)',
                   letterSpacing: '-0.01em',
@@ -119,12 +119,8 @@ export default function Sidebar() {
               >
                 AVS Nexus
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                {user.role === 'superAdmin'
-                  ? 'Super Admin'
-                  : user.role === 'moduleAdmin'
-                  ? 'Module Admin'
-                  : 'Student'}
+              <div style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: '500' }}>
+                {user.role === 'superAdmin' ? 'Super' : user.role === 'moduleAdmin' ? 'Admin' : 'Student'}
               </div>
             </div>
           </div>
@@ -132,20 +128,20 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: '12px 12px', overflowY: 'auto' }}>
-        <div style={{ marginBottom: '4px' }}>
+      <nav style={{ flex: 1, padding: '6px 6px', overflowY: 'auto' }}>
+        <div style={{ marginBottom: '2px' }}>
           <div
             style={{
-              fontSize: '11px',
-              fontWeight: '500',
+              fontSize: '9px',
+              fontWeight: '700',
               color: 'var(--muted)',
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              padding: '0 12px',
-              marginBottom: '8px',
+              padding: '0 8px',
+              marginBottom: '4px',
             }}
           >
-            Navigation
+            Menu
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -156,16 +152,16 @@ export default function Sidebar() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    marginBottom: '2px',
+                    gap: '6px',
+                    padding: '5px 8px',
+                    borderRadius: '5px',
+                    marginBottom: '1px',
                     background: isActive ? 'var(--foreground)' : 'transparent',
                     color: isActive ? 'var(--background)' : 'var(--muted-fg)',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    fontSize: '13.5px',
-                    fontWeight: isActive ? '500' : '400',
+                    transition: 'all 0.1s ease',
+                    fontSize: '12px',
+                    fontWeight: isActive ? '600' : '500',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
@@ -180,7 +176,7 @@ export default function Sidebar() {
                     }
                   }}
                 >
-                  <Icon size={16} />
+                  <Icon size={13} strokeWidth={isActive ? 2.5 : 2} />
                   {item.label}
                 </div>
               </Link>
@@ -192,11 +188,11 @@ export default function Sidebar() {
       {/* Bottom */}
       <div
         style={{
-          padding: '12px',
+          padding: '6px',
           borderTop: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px',
+          gap: '1px',
         }}
       >
         {/* Theme toggle */}
@@ -205,16 +201,16 @@ export default function Sidebar() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '8px 12px',
-            borderRadius: '6px',
+            gap: '6px',
+            padding: '5px 8px',
+            borderRadius: '5px',
             background: 'transparent',
             border: 'none',
             color: 'var(--muted-fg)',
             cursor: 'pointer',
-            fontSize: '13.5px',
+            fontSize: '12px',
             width: '100%',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.1s ease',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--surface-hover)';

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ArrowRight, BookOpen } from 'lucide-react';
 
 interface Module {
   _id: string;
@@ -62,113 +62,62 @@ export default function ModulesPage() {
   return (
     <AppShell title="Modules" subtitle="All available skill evaluation modules">
       {/* Search and filter */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '24px',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ position: 'relative', flex: 1, maxWidth: '360px' }}>
+      <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <div className="relative flex-1 group">
           <Search
-            size={15}
-            style={{
-              position: 'absolute',
-              left: '10px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--muted)',
-            }}
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--primary)] transition-colors"
           />
           <input
             type="text"
             placeholder="Search modules..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px 8px 34px',
-              fontSize: '13.5px',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              background: 'var(--surface)',
-              color: 'var(--foreground)',
-              outline: 'none',
-            }}
+            className="w-full pl-9 pr-3 py-2 text-xs border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--foreground)] outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-hide -mx-3 px-3 md:mx-0 md:px-0">
           {['all', 'coding', 'mcq', 'file_upload', 'design'].map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '6px',
-                border: '1px solid var(--border)',
-                background: filter === type ? 'var(--foreground)' : 'var(--surface)',
-                color: filter === type ? 'var(--background)' : 'var(--muted-fg)',
-                fontSize: '12.5px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                filter === type
+                  ? 'bg-[var(--foreground)] border-[var(--foreground)] text-[var(--background)] shadow-sm'
+                  : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted-fg)] hover:border-[var(--border-strong)] hover:text-[var(--foreground)]'
+              }`}
             >
-              {type === 'all' ? 'All' : typeLabels[type]}
+              {type === 'all' ? 'All Modules' : typeLabels[type]}
             </button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} style={{ height: '200px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px' }} />
+            <div key={i} className="h-[240px] bg-[var(--surface)] border border-[var(--border)] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px', color: 'var(--muted)' }}>
-          <p>No modules match your search.</p>
+        <div className="text-center py-16 px-4 bg-[var(--surface)] rounded-2xl border border-[var(--border)]">
+          <p className="text-[var(--muted)] text-sm font-medium">No modules match your search.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
           {filtered.map((module) => {
             const colors = typeColors[module.type] || { bg: '#f1f5f9', text: '#64748b' };
             return (
-              <Link key={module._id} href={`/modules/${module._id}`} style={{ textDecoration: 'none' }}>
-                <div
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    padding: '22px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-strong)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '32px' }}>{module.icon || '📚'}</span>
+              <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 h-full flex flex-col gap-4 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-md hover:-translate-y-1 active:scale-[0.98]">
+                  <div className="flex items-start justify-between">
+                    <span className="text-3xl group-hover:scale-105 transition-transform duration-300 origin-left">
+                      {module.icon || '📚'}
+                    </span>
                     <span
+                      className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
                       style={{
-                        padding: '3px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: '500',
                         background: colors.bg,
                         color: colors.text,
                       }}
@@ -177,17 +126,17 @@ export default function ModulesPage() {
                     </span>
                   </div>
 
-                  <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--foreground)', marginBottom: '6px' }}>
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-[var(--foreground)] mb-1.5 group-hover:text-[var(--primary)] transition-colors">
                       {module.name}
                     </h3>
-                    <p style={{ fontSize: '12.5px', color: 'var(--muted)', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <p className="text-xs text-[var(--muted)] leading-normal line-clamp-2">
                       {module.description}
                     </p>
                   </div>
 
                   {module.stageConfig && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="grid grid-cols-3 gap-2">
                       {[
                         { label: 'Easy', count: module.stageConfig.easy.count, pts: module.stageConfig.easy.pointsPerTask },
                         { label: 'Mid', count: module.stageConfig.intermediate.count, pts: module.stageConfig.intermediate.pointsPerTask },
@@ -195,27 +144,26 @@ export default function ModulesPage() {
                       ].map((stage) => (
                         <div
                           key={stage.label}
-                          style={{
-                            flex: 1,
-                            padding: '6px 8px',
-                            background: 'var(--surface-hover)',
-                            borderRadius: '6px',
-                            textAlign: 'center',
-                          }}
+                          className="p-2 bg-[var(--surface-hover)] rounded-xl text-center border border-transparent transition-colors group-hover:border-[var(--border)]"
                         >
-                          <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px' }}>{stage.label}</div>
-                          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--foreground)' }}>{stage.count}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{stage.pts}pts ea.</div>
+                          <div className="text-[10px] text-[var(--muted)] mb-0.5 font-medium uppercase tracking-tight">{stage.label}</div>
+                          <div className="text-sm font-bold text-[var(--foreground)]">{stage.count}</div>
+                          <div className="text-[9px] text-[var(--muted)] font-medium">{stage.pts}pts</div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                      Max: <strong style={{ color: 'var(--foreground)' }}>{totalPoints(module).toLocaleString()}</strong> pts
-                    </span>
-                    <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: '500' }}>Start →</span>
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-[var(--muted)] uppercase font-bold tracking-wider">Potential</span>
+                      <span className="text-sm font-bold text-[var(--foreground)]">
+                        {totalPoints(module).toLocaleString()} <span className="text-[10px] font-medium text-[var(--muted)]">pts</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary)] group-hover:gap-3 transition-all">
+                      Start Module <ArrowRight size={16} strokeWidth={2.5} />
+                    </div>
                   </div>
                 </div>
               </Link>

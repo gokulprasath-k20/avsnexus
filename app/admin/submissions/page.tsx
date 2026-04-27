@@ -17,7 +17,10 @@ interface Submission {
   submittedAt: string;
 }
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export default function AdminSubmissionsPage() {
+  const { user } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState<string | null>(null);
@@ -26,9 +29,21 @@ export default function AdminSubmissionsPage() {
   useEffect(() => {
     fetch('/api/submissions')
       .then((r) => r.json())
-      .then((d) => setSubmissions(d.submissions || []))
+      .then((d) => {
+        const all = d.submissions || [];
+        // Filter based on admin's assigned module type
+        if (user?.role === 'moduleAdmin' && user.assignedModuleType) {
+          setSubmissions(all.filter((s: any) => s.taskId?.type === user.assignedModuleType));
+        } else {
+          setSubmissions(all);
+        }
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
+
+  const adminTitle = user?.assignedModuleType === 'coding' ? 'CodeAdmin' : 
+                     user?.assignedModuleType === 'mcq' ? 'DebugAdmin' : 
+                     user?.assignedModuleType === 'file_upload' ? 'PresentAdmin' : 'Admin';
 
   const submitReview = async (submissionId: string) => {
     try {
@@ -41,7 +56,6 @@ export default function AdminSubmissionsPage() {
       toast.success('Evaluation updated!');
       setReviewing(null);
       
-      // Update local state instead of removing it
       setSubmissions((prev) => prev.map((s) => {
         if (s._id === submissionId) {
           return { ...s, score: reviewForm.score, feedback: reviewForm.feedback, status: 'reviewed' };
@@ -60,114 +74,118 @@ export default function AdminSubmissionsPage() {
   };
 
   return (
-    <AppShell title="Student Submissions" subtitle="Evaluate, add feedback, and override marks">
+    <AppShell title={`${adminTitle} Submissions`} subtitle={`Review and evaluate ${user?.assignedModuleType || 'assigned'} tasks`}>
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-          <div className="spinner" style={{ width: '24px', height: '24px' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+          <div className="spinner" style={{ width: '20px', height: '20px' }} />
         </div>
       ) : submissions.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px' }}>
-          <Check size={32} style={{ color: 'var(--success)', margin: '0 auto 12px' }} />
-          <p style={{ fontSize: '15px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>No submissions yet.</p>
-          <p style={{ fontSize: '13px', color: 'var(--muted)' }}>Students haven't submitted any tasks.</p>
+        <div style={{ textAlign: 'center', padding: '40px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <Check size={24} style={{ color: 'var(--success)', margin: '0 auto 8px' }} />
+          <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--foreground)', marginBottom: '2px' }}>Clear!</p>
+          <p style={{ fontSize: '11px', color: 'var(--muted)' }}>No {user?.assignedModuleType} submissions found.</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {submissions.map((sub) => (
             <div
               key={sub._id}
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '18px 22px' }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px 16px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--foreground)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {sub.taskId?.title}
-                    <span style={{ fontSize: '10px', fontWeight: '500', background: 'var(--surface-hover)', padding: '2px 6px', borderRadius: '4px', color: 'var(--muted-fg)', textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="truncate">{sub.taskId?.title}</span>
+                    <span style={{ fontSize: '9px', fontWeight: '800', background: 'var(--surface-hover)', padding: '1px 5px', borderRadius: '3px', color: 'var(--muted-fg)', textTransform: 'uppercase', border: '1px solid var(--border)' }}>
                       {sub.taskId?.type}
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                    {sub.studentId?.name} ({sub.studentId?.email}) •{' '}
+                  <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px' }}>
+                    <span style={{ fontWeight: '600', color: 'var(--foreground)' }}>{sub.studentId?.name}</span> •{' '}
                     {new Date(sub.submittedAt).toLocaleDateString()}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '600', color: getStatusColor(sub.status) }}>
-                    Score: {sub.score} / {sub.taskId?.points || 0}
-                  </span>
-                  <span style={{ fontSize: '11px', fontWeight: '500', color: getStatusColor(sub.status), background: `${getStatusColor(sub.status)}12`, padding: '3px 8px', borderRadius: '4px', textTransform: 'capitalize' }}>
-                    {sub.status.replace('_', ' ')}
-                  </span>
-                  {sub.fileUrl && (
-                    <a
-                      href={sub.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--primary)', textDecoration: 'none', padding: '5px 10px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface-hover)' }}
+
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--foreground)' }}>
+                      {sub.score} <span style={{ color: 'var(--muted)', fontWeight: '500' }}>/ {sub.taskId?.points || 0}</span>
+                    </div>
+                    <div style={{ fontSize: '9px', fontWeight: '700', color: getStatusColor(sub.status), textTransform: 'uppercase' }}>
+                      {sub.status.replace('_', ' ')}
+                    </div>
+                  </div>
+
+                  <div style={{ width: '1px', height: '24px', background: 'var(--border)' }} />
+
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {sub.fileUrl && (
+                      <a
+                        href={sub.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-7 h-7 flex items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-hover)] text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all"
+                        title="View File"
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+                    )}
+                    
+                    <button
+                      onClick={() => { setReviewing(sub._id); setReviewForm({ score: sub.score || 0, feedback: sub.feedback || '' }); }}
+                      className="px-3 h-7 text-[11px] font-bold rounded-md border border-[var(--border)] bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all"
                     >
-                      <ExternalLink size={12} /> View File
-                    </a>
-                  )}
+                      Evaluate
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {sub.feedback && (
-                <div style={{ background: 'var(--background)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', marginBottom: '12px', fontSize: '12px', color: 'var(--foreground)' }}>
-                  <strong>Admin Feedback:</strong> {sub.feedback}
+              {sub.feedback && reviewing !== sub._id && (
+                <div style={{ marginTop: '8px', padding: '6px 10px', background: 'var(--background)', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '10px', color: 'var(--muted-fg)' }}>
+                  <span style={{ fontWeight: '700', color: 'var(--foreground)' }}>Feedback:</span> {sub.feedback}
                 </div>
               )}
 
-              {reviewing === sub._id ? (
-                <div style={{ background: 'var(--surface-hover)', borderRadius: '8px', padding: '14px' }}>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
+              {reviewing === sub._id && (
+                <div style={{ marginTop: '10px', padding: '10px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '10px', marginBottom: '8px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '5px' }}>
-                        Override Score
-                      </label>
+                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Score</label>
                       <input
                         type="number"
                         min={0}
                         max={sub.taskId?.points || 100}
                         value={reviewForm.score}
                         onChange={(e) => setReviewForm({ ...reviewForm, score: Number(e.target.value) })}
-                        style={{ width: '100px', padding: '6px 10px', fontSize: '13px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }}
+                        style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }}
                       />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '5px' }}>
-                        Feedback
-                      </label>
-                      <textarea
+                    <div>
+                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Feedback</label>
+                      <input
                         value={reviewForm.feedback}
                         onChange={(e) => setReviewForm({ ...reviewForm, feedback: e.target.value })}
-                        placeholder="Explain why the score was changed or give tips..."
-                        rows={2}
-                        style={{ width: '100%', padding: '6px 10px', fontSize: '13px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }}
+                        placeholder="Evaluation notes..."
+                        style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }}
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
                     <button
                       onClick={() => submitReview(sub._id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', background: 'var(--foreground)', color: 'var(--background)', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                      className="flex-1 h-7 text-[11px] font-bold rounded-md bg-[var(--primary)] text-white hover:opacity-90 transition-all"
                     >
-                      <Check size={13} /> Save Evaluation
+                      Apply
                     </button>
                     <button
                       onClick={() => setReviewing(null)}
-                      style={{ padding: '7px 12px', background: 'var(--surface-hover)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', color: 'var(--muted-fg)' }}
+                      className="px-3 h-7 text-[11px] font-bold rounded-md border border-[var(--border)] bg-[var(--surface-hover)] text-[var(--foreground)] hover:bg-[var(--border)] transition-all"
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => { setReviewing(sub._id); setReviewForm({ score: sub.score || 0, feedback: sub.feedback || '' }); }}
-                  style={{ padding: '7px 16px', background: 'var(--surface-hover)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', color: 'var(--foreground)' }}
-                >
-                  Edit Evaluation
-                </button>
               )}
             </div>
           ))}

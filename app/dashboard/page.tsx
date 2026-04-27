@@ -80,47 +80,25 @@ export default function DashboardPage() {
       subtitle={`Student • ${user?.category === 'elite' ? 'Elite' : 'Non-Elite'} • ${user?.department || 'Unassigned'} Department • Year ${user?.year || '1'}`}
     >
       {/* Stats row */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '16px',
-          marginBottom: '32px',
-        }}
-      >
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '10px',
-              padding: '18px 20px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-            }}
+            className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2.5 sm:p-3 flex items-start justify-between transition-all hover:shadow-sm"
           >
             <div>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>
+              <p className="text-[9px] sm:text-[10px] text-[var(--muted)] mb-0.5 uppercase tracking-wider font-bold">
                 {stat.label}
               </p>
-              <p
-                style={{ fontSize: '24px', fontWeight: '700', color: 'var(--foreground)', letterSpacing: '-0.02em' }}
-              >
+              <p className="text-base sm:text-lg font-extrabold text-[var(--foreground)] tracking-tight">
                 {stat.value}
               </p>
             </div>
             <div
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center shrink-0"
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
                 background: `${stat.color}15`,
                 color: stat.color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
             >
               {stat.icon}
@@ -131,142 +109,62 @@ export default function DashboardPage() {
 
       {/* Modules section */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '16px',
-          }}
-        >
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--foreground)' }}>
+            <h2 className="text-xs sm:text-sm font-extrabold text-[var(--foreground)] uppercase tracking-tight">
               Available Modules
             </h2>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
-              Select a module to start your evaluation
-            </p>
           </div>
           <Link
             href="/modules"
-            style={{
-              fontSize: '13px',
-              color: 'var(--primary)',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
+            className="text-[10px] sm:text-[11px] font-bold text-[var(--primary)] flex items-center gap-1 hover:underline"
           >
-            View all <ArrowRight size={13} />
+            View all <ArrowRight size={10} />
           </Link>
         </div>
 
         {loading ? (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                style={{
-                  height: '140px',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '10px',
-                  animation: 'pulse 2s infinite',
-                }}
+                className="h-24 sm:h-28 bg-[var(--surface)] border border-[var(--border)] rounded-lg animate-pulse"
               />
             ))}
           </div>
         ) : modules.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '60px',
-              background: 'var(--surface)',
-              borderRadius: '10px',
-              border: '1px solid var(--border)',
-            }}
-          >
-            <BookOpen size={32} style={{ color: 'var(--muted)', margin: '0 auto 12px' }} />
-            <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
-              No modules available yet. Check back soon!
+          <div className="text-center py-8 sm:py-10 bg-[var(--surface)] rounded-lg border border-[var(--border)]">
+            <BookOpen size={20} className="text-[var(--muted)] mx-auto mb-1.5" />
+            <p className="text-[var(--muted)] text-[11px] px-4">
+              No modules available yet.
             </p>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {modules.slice(0, 6).map((module) => (
-              <Link key={module._id} href={`/modules/${module._id}`} style={{ textDecoration: 'none' }}>
+              <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
                 <div
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    padding: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    height: '100%',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-strong)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
+                  className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 sm:p-4 h-full transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm active:scale-[0.98]"
                 >
-                  <div style={{ fontSize: '28px', marginBottom: '12px' }}>{module.icon || '📚'}</div>
-                  <h3
-                    style={{
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: 'var(--foreground)',
-                      marginBottom: '6px',
-                    }}
-                  >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-lg sm:text-xl group-hover:scale-105 transition-transform duration-300 origin-left">
+                      {module.icon || '📚'}
+                    </div>
+                    <span
+                      className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase tracking-tighter bg-[var(--surface-hover)] border border-[var(--border)]"
+                      style={{
+                        color: moduleTypeColors[module.type] || '#64748b',
+                      }}
+                    >
+                      {moduleTypeLabels[module.type] || module.type}
+                    </span>
+                  </div>
+                  <h3 className="text-[11px] sm:text-[12px] font-bold text-[var(--foreground)] mb-1 leading-tight">
                     {module.name}
                   </h3>
-                  <p
-                    style={{
-                      fontSize: '12px',
-                      color: 'var(--muted)',
-                      lineHeight: '1.5',
-                      marginBottom: '14px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
+                  <p className="text-[10px] text-[var(--muted)] leading-tight mb-0 line-clamp-2 min-h-[1.2rem]">
                     {module.description}
                   </p>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      padding: '3px 8px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      fontWeight: '500',
-                      background: `${moduleTypeColors[module.type] || '#64748b'}15`,
-                      color: moduleTypeColors[module.type] || '#64748b',
-                    }}
-                  >
-                    {moduleTypeLabels[module.type] || module.type}
-                  </span>
                 </div>
               </Link>
             ))}

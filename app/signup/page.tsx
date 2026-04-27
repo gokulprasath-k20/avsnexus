@@ -50,9 +50,10 @@ export default function SignupPage() {
         minHeight: '100vh',
         background: 'var(--background)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
         padding: '24px',
+        paddingTop: '8vh',
       }}
     >
       <div style={{ width: '100%', maxWidth: '400px' }}>
