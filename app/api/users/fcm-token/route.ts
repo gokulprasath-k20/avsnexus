@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongoose';
+import connectDB from '@/lib/db';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Token is required' }, { status: 400 });
     }
 
-    await connectToDatabase();
+    await connectDB();
     
     // Add token to user if it doesn't already exist
     await User.findByIdAndUpdate(decoded.userId, {
