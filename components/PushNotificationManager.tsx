@@ -21,6 +21,7 @@ export default function PushNotificationManager() {
         const token = await requestForToken();
         if (token) {
           // Send token to backend
+          try {
             const jwtToken = localStorage.getItem('token');
             if (!jwtToken) return;
             
