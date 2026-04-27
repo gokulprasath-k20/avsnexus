@@ -4,6 +4,8 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from 'react-hot-toast';
+import InstallPrompt from '@/components/InstallPrompt';
+import PushNotificationManager from '@/components/PushNotificationManager';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -22,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2563eb" />
       </head>
       <body className={inter.variable}>
         <ThemeProvider>
@@ -42,6 +47,8 @@ export default function RootLayout({
                 },
               }}
             />
+            <InstallPrompt />
+            <PushNotificationManager />
           </AuthProvider>
         </ThemeProvider>
       </body>

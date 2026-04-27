@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 import { ExternalLink, Check } from 'lucide-react';
 
 interface Submission {
@@ -21,7 +22,7 @@ export default function SuperAdminSubmissionsPage() {
   const [yearFilter, setYearFilter] = useState('');
 
   useEffect(() => {
-    fetch('/api/submissions')
+    fetch(getApiUrl('/api/submissions'))
       .then((r) => r.json())
       .then((d) => setSubmissions(d.submissions || []))
       .finally(() => setLoading(false));

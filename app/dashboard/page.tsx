@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
+import { getApiUrl } from '@/lib/api';
 import Link from 'next/link';
 import { BookOpen, Trophy, CheckCircle, Clock, TrendingUp, ArrowRight, Star } from 'lucide-react';
 
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/modules')
+    fetch(getApiUrl('/api/modules'))
       .then((r) => r.json())
       .then((d) => setModules(d.modules || []))
       .finally(() => setLoading(false));

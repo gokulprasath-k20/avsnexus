@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
 import { Search, Filter, ArrowRight, BookOpen } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Module {
   _id: string;
@@ -39,7 +40,7 @@ export default function ModulesPage() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch('/api/modules')
+    fetch(getApiUrl('/api/modules'))
       .then((r) => r.json())
       .then((d) => setModules(d.modules || []))
       .finally(() => setLoading(false));

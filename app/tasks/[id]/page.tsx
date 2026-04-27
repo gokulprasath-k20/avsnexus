@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { ArrowLeft, Play, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getApiUrl } from '@/lib/api';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -72,7 +73,7 @@ export default function TaskPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/tasks/${id}`)
+    fetch(getApiUrl(`/api/tasks/${id}`))
 
       .then((r) => r.json())
       .then((d) => {
@@ -114,7 +115,7 @@ export default function TaskPage() {
     setSubmitting(true);
     setResult(null); // clear previous submit result
     try {
-      const res = await fetch('/api/run', {
+      const res = await fetch(getApiUrl('/api/run'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: id, code, language }),
@@ -135,7 +136,7 @@ export default function TaskPage() {
     setSubmitting(true);
     setRunResult(null); // clear previous run result
     try {
-      const res = await fetch('/api/submissions', {
+      const res = await fetch(getApiUrl('/api/submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: id, code, language }),
@@ -160,7 +161,7 @@ export default function TaskPage() {
     if (selectedOptions.length === 0) return toast.error('Please select an answer');
     setSubmitting(true);
     try {
-      const res = await fetch('/api/submissions', {
+      const res = await fetch(getApiUrl('/api/submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: id, selectedAnswers: selectedOptions }),
@@ -184,7 +185,7 @@ export default function TaskPage() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('taskId', id);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch(getApiUrl('/api/upload'), { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult({ status: 'needs_review', score: 0 });
@@ -462,8 +463,8 @@ export default function TaskPage() {
 
             {/* Fullscreen Overlay */}
             {isFullscreen && (
-               <div className="fixed inset-0 z-[100] bg-[var(--background)] flex flex-col">
-                  <div className="h-9 border-b border-[var(--border)] flex items-center justify-between px-4 bg-[var(--surface)]">
+               <div className="fixed inset-0 z-[100] bg-[var(--background)] flex flex-col" style={{ paddingLeft: 'var(--safe-left)', paddingRight: 'var(--safe-right)', paddingBottom: 'var(--safe-bottom)' }}>
+                  <div className="border-b border-[var(--border)] flex items-center justify-between px-4 bg-[var(--surface)]" style={{ height: 'calc(36px + var(--safe-top))', paddingTop: 'var(--safe-top)' }}>
                     <div className="flex items-center gap-3">
                       <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">{task.title}</span>
                       <div className="w-px h-4 bg-[var(--border)]" />

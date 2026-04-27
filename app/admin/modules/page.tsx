@@ -5,6 +5,7 @@ import AppShell from '@/components/AppShell';
 import Link from 'next/link';
 import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiUrl } from '@/lib/api';
 
 interface Module {
   _id: string;
@@ -42,7 +43,7 @@ export default function AdminModulesPage() {
   }, [user?.assignedModuleType]);
 
   const fetchModules = () => {
-    fetch('/api/modules')
+    fetch(getApiUrl('/api/modules'))
       .then((r) => r.json())
       .then((d) => setModules(d.modules || []))
       .finally(() => setLoading(false));
@@ -90,7 +91,7 @@ export default function AdminModulesPage() {
     e.preventDefault();
     try {
       // 1. Create the module
-      const res = await fetch('/api/modules', {
+      const res = await fetch(getApiUrl('/api/modules'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -124,7 +125,7 @@ export default function AdminModulesPage() {
             payload.submissionGuidelines = t.submissionGuidelines;
           }
 
-          return fetch('/api/tasks', {
+          return fetch(getApiUrl('/api/tasks'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

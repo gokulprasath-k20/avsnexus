@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 import Link from 'next/link';
 import { Users, UserCog } from 'lucide-react';
 
@@ -10,7 +11,7 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/users')
+    fetch(getApiUrl('/api/admin/users'))
       .then((r) => r.json())
       .then((d) => {
         if (!d.error && d.users) {

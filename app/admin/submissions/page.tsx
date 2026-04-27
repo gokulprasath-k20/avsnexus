@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import { ExternalLink, Check, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiUrl } from '@/lib/api';
 
 interface Submission {
   _id: string;
@@ -27,7 +28,7 @@ export default function AdminSubmissionsPage() {
   const [reviewForm, setReviewForm] = useState({ score: 0, feedback: '' });
 
   useEffect(() => {
-    fetch('/api/submissions')
+    fetch(getApiUrl('/api/submissions'))
       .then((r) => r.json())
       .then((d) => {
         const all = d.submissions || [];
@@ -47,7 +48,7 @@ export default function AdminSubmissionsPage() {
 
   const submitReview = async (submissionId: string) => {
     try {
-      const res = await fetch(`/api/submissions/${submissionId}`, {
+      const res = await fetch(getApiUrl(`/api/submissions/${submissionId}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewForm),

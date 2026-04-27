@@ -5,14 +5,22 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "mobile:build": "powershell -Command \"Rename-Item app/api api_routes; try { npm run build } finally { Rename-Item api_routes app/api }; npx cap sync\"",
     "start": "next start"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/status-bar": "^8.0.2",
     "@monaco-editor/react": "^4.7.0",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
     "date-fns": "^4.1.0",
+    "firebase": "^12.12.1",
+    "firebase-admin": "^13.8.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.8.0",
     "mongoose": "^9.5.0",

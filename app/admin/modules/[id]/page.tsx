@@ -6,6 +6,7 @@ import AppShell from '@/components/AppShell';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getApiUrl } from '@/lib/api';
 
 interface Task {
   _id: string;
@@ -50,8 +51,8 @@ export default function AdminModuleDetailPage() {
 
   const fetchData = () => {
     Promise.all([
-      fetch(`/api/modules/${id}`).then((r) => r.json()),
-      fetch(`/api/tasks?moduleId=${id}`).then((r) => r.json()),
+      fetch(getApiUrl(`/api/modules/${id}`)).then((r) => r.json()),
+      fetch(getApiUrl(`/api/tasks?moduleId=${id}`)).then((r) => r.json()),
     ]).then(([modData, taskData]) => {
       setModule(modData.module);
       setTasks(taskData.tasks || []);
@@ -86,7 +87,7 @@ export default function AdminModuleDetailPage() {
     }
 
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await fetch(getApiUrl('/api/tasks'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -16,6 +16,7 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   category?: 'elite' | 'non-elite';
+  fcmTokens?: string[];
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -57,6 +58,7 @@ const UserSchema = new Schema<IUser>(
       default: 'non-elite',
     },
     isActive: { type: Boolean, default: true },
+    fcmTokens: [{ type: String }],
   },
   { timestamps: true }
 );

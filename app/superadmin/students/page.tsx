@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 
 interface Student {
   _id: string;
@@ -20,7 +21,7 @@ export default function SuperAdminStudentsPage() {
   const [yearFilter, setYearFilter] = useState('');
 
   useEffect(() => {
-    fetch('/api/admin/users?role=student')
+    fetch(getApiUrl('/api/admin/users?role=student'))
       .then((r) => r.json())
       .then((d) => setStudents(d.users || []))
       .finally(() => setLoading(false));

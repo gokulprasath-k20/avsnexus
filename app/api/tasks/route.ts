@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Task from '@/models/Task';
 import Module from '@/models/Module';
+import User from '@/models/User';
 import { requireAuth } from '@/lib/auth';
+import { messaging } from '@/lib/firebaseAdmin';
 
 // GET /api/tasks?moduleId=...&stage=...
 export const GET = requireAuth(async (request: NextRequest) => {
@@ -50,6 +52,37 @@ export const POST = requireAuth(
       }
 
       const task = await Task.create({ ...body, createdBy: user.userId });
+
+      // Send Push Notifications to Students
+      if (messaging) {
+        try {
+          const students = await User.find({ role: 'student', isActive: true, fcmTokens: { $exists: true, $not: { $size: 0 } } });
+          const allTokens = students.flatMap(s => s.fcmTokens || []);
+
+          if (allTokens.length > 0) {
+            // Firebase limits multicast to 500 tokens per call
+            const uniqueTokens = [...new Set(allTokens)].slice(0, 500); 
+            
+            const message = {
+              notification: {
+                title: 'New Task Assigned 🚀',
+                body: `A new ${task.type === 'coding' ? 'coding challenge' : 'task'} "${task.title}" has been added. Check now!`,
+              },
+              data: {
+                url: `/tasks/${task._id}`,
+                taskId: task._id.toString()
+              },
+              tokens: uniqueTokens
+            };
+
+            const response = await messaging.sendEachForMulticast(message);
+            console.log(`Successfully sent ${response.successCount} messages; Failed ${response.failureCount} messages.`);
+          }
+        } catch (pushErr) {
+          console.error('Failed to send push notifications:', pushErr);
+        }
+      }
+
       return NextResponse.json({ task }, { status: 201 });
     } catch {
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, Terminal, X, Maximize2, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 import { useTheme } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
@@ -21,7 +22,7 @@ export default function PlaygroundPage() {
     setIsRunning(true);
     setOutput('Running...\n');
     try {
-      const res = await fetch('/api/execute', {
+      const res = await fetch(getApiUrl('/api/execute'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, language, input }),

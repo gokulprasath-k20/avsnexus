@@ -48,9 +48,10 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] px-1 pb-safe shadow-lg"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface)] border-t border-[var(--border)] px-1 shadow-lg"
       style={{
-        height: '52px',
+        height: 'calc(52px + var(--safe-bottom))',
+        paddingBottom: 'var(--safe-bottom)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',

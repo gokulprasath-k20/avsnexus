@@ -16,9 +16,10 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
       <Sidebar />
       <div 
-        className="flex-1 flex flex-col min-h-screen pb-[52px] md:pb-0 md:ml-[190px]"
+        className="flex-1 flex flex-col min-h-screen md:ml-[160px]"
         style={{ 
-          transition: 'margin-left 0.2s ease-in-out'
+          transition: 'margin-left 0.2s ease-in-out',
+          paddingBottom: 'calc(52px + var(--safe-bottom))',
         }}
       >
         <TopBar title={title} subtitle={subtitle} />

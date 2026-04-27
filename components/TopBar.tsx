@@ -19,12 +19,13 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
     <header
       className="px-1.5 md:px-3"
       style={{
-        height: '34px',
+        height: 'calc(34px + var(--safe-top))',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         background: 'var(--background)',
+        paddingTop: 'var(--safe-top)',
         position: 'sticky',
         top: 0,
         zIndex: 30,

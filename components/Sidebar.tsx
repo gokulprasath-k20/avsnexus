@@ -78,6 +78,8 @@ export default function Sidebar() {
         top: 0,
         bottom: 0,
         zIndex: 40,
+        paddingLeft: 'var(--safe-left)',
+        paddingTop: 'var(--safe-top)',
       }}
     >
       {/* Logo - Compact */}

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 import { Trophy, Medal, Award } from 'lucide-react';
 
 interface LeaderboardEntry {
@@ -19,7 +20,7 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/leaderboard')
+    fetch(getApiUrl('/api/leaderboard'))
       .then((r) => r.json())
       .then((d) => setLeaderboard(d.leaderboard || []))
       .finally(() => setLoading(false));

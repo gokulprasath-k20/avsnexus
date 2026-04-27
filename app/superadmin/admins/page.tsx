@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { getApiUrl } from '@/lib/api';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -17,7 +18,7 @@ export default function SuperAdminAdminsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/users?role=moduleAdmin')
+    fetch(getApiUrl('/api/admin/users?role=moduleAdmin'))
       .then((r) => r.json())
       .then((d) => setAdmins(d.users || []))
       .finally(() => setLoading(false));
