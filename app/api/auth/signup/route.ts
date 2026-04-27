@@ -6,11 +6,11 @@ import { signToken } from '@/lib/jwt';
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { name, email, password, department, year } = await request.json();
+    const { name, email, password, department, year, category } = await request.json();
 
-    if (!name || !email || !password || !department || !year) {
+    if (!name || !email || !password || !department || !year || !category) {
       return NextResponse.json(
-        { error: 'All fields including department and year are required' },
+        { error: 'All fields including department, year, and category are required' },
         { status: 400 }
       );
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await User.create({ name, email, password, role: 'student', department, year });
+    const user = await User.create({ name, email, password, role: 'student', department, year, category });
 
     const token = signToken({
       userId: user._id.toString(),
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
           department: user.department,
           year: user.year,
           totalPoints: user.totalPoints,
+          category: user.category,
         },
       },
       { status: 201 }

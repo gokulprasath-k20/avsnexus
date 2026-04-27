@@ -3,6 +3,8 @@
 import React from 'react';
 import NotificationBell from './NotificationBell';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Moon, Sun } from 'lucide-react';
 
 interface TopBarProps {
   title: string;
@@ -11,6 +13,7 @@ interface TopBarProps {
 
 export default function TopBar({ title, subtitle }: TopBarProps) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header
@@ -65,6 +68,25 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
             <span style={{ fontSize: '11px', color: 'var(--muted)' }}>pts</span>
           </div>
         )}
+        <button
+          onClick={toggleTheme}
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--foreground)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        >
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+        </button>
         <NotificationBell />
       </div>
     </header>

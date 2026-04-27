@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         assignedModuleType: user.assignedModuleType,
         totalPoints: user.totalPoints,
         avatar: user.avatar,
+        category: user.category,
       },
     });
 

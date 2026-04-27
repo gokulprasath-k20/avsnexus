@@ -13,13 +13,14 @@ interface User {
   assignedModuleType?: 'coding' | 'mcq' | 'file_upload';
   totalPoints: number;
   avatar?: string;
+  category?: 'elite' | 'non-elite';
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, department: string, year: number) => Promise<void>;
+  signup: (name: string, email: string, password: string, department: string, year: number, category: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -67,11 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, department: string, year: number) => {
+  const signup = async (name: string, email: string, password: string, department: string, year: number, category: string) => {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, department, year }),
+      body: JSON.stringify({ name, email, password, department, year, category }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Signup failed');

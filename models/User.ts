@@ -15,6 +15,7 @@ export interface IUser extends Document {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  category?: 'elite' | 'non-elite';
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -50,6 +51,11 @@ const UserSchema = new Schema<IUser>(
     },
     totalPoints: { type: Number, default: 0 },
     avatar: { type: String },
+    category: {
+      type: String,
+      enum: ['elite', 'non-elite'],
+      default: 'non-elite',
+    },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

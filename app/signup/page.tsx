@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [department, setDepartment] = useState('CSE');
   const [year, setYear] = useState('1');
+  const [category, setCategory] = useState('non-elite');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,7 @@ export default function SignupPage() {
     if (password.length < 6) return toast.error('Password must be at least 6 characters');
     setLoading(true);
     try {
-      await signup(name, email, password, department, parseInt(year));
+      await signup(name, email, password, department, parseInt(year), category);
       toast.success('Account created! Welcome to AVS Nexus.');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Signup failed');
@@ -143,6 +144,21 @@ export default function SignupPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="category" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
+                Student Category
+              </label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                style={inputStyle}
+              >
+                <option value="non-elite">Non-Elite Student</option>
+                <option value="elite">Elite Student</option>
+              </select>
             </div>
 
             <div>

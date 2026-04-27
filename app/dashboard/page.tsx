@@ -77,7 +77,7 @@ export default function DashboardPage() {
   return (
     <AppShell
       title={`Good day, ${user?.name?.split(' ')[0]} 👋`}
-      subtitle={`Student • ${user?.department || 'Unassigned'} Department • Year ${user?.year || '1'}`}
+      subtitle={`Student • ${user?.category === 'elite' ? 'Elite' : 'Non-Elite'} • ${user?.department || 'Unassigned'} Department • Year ${user?.year || '1'}`}
     >
       {/* Stats row */}
       <div
