@@ -34,19 +34,19 @@ export default function SuperAdminAdminsPage() {
 
   return (
     <AppShell title="Admins" subtitle="Manage administrators">
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
-        <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 150px 30px', gap: '12px', alignItems: 'center', background: 'var(--surface-hover)' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+        <div style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 100px 20px', gap: '8px', alignItems: 'center', background: 'var(--surface-hover)' }}>
           {['Admin', 'Module', ''].map((h) => (
-            <span key={h} style={{ fontSize: '9px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
+            <span key={h} style={{ fontSize: '8px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
           ))}
         </div>
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <div className="spinner" style={{ width: '20px', height: '20px', margin: '0 auto' }} />
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <div className="spinner" style={{ width: '16px', height: '16px', margin: '0 auto' }} />
           </div>
         ) : admins.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>No admins found.</div>
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', fontSize: '10px' }}>No admins</div>
         ) : (
           admins.map((admin) => {
             const initials = admin.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -54,11 +54,11 @@ export default function SuperAdminAdminsPage() {
               <Link key={admin._id} href={`/superadmin/admins/${admin._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div
                   style={{
-                    padding: '8px 16px',
+                    padding: '5px 10px',
                     borderBottom: '1px solid var(--border)',
                     display: 'grid',
-                    gridTemplateColumns: '1fr 150px 30px',
-                    gap: '12px',
+                    gridTemplateColumns: '1fr 100px 20px',
+                    gap: '8px',
                     alignItems: 'center',
                     cursor: 'pointer',
                     transition: 'background 0.1s ease',
@@ -66,22 +66,22 @@ export default function SuperAdminAdminsPage() {
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: '700', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '900', flexShrink: 0 }}>
                       {initials}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{admin.name}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{admin.email}</div>
+                      <div style={{ fontSize: '11px', fontVariationSettings: '"wght" 700', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', lineHeight: '1.1' }}>{admin.name}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{admin.email}</div>
                     </div>
                   </div>
-                  <div style={{ fontSize: '11px' }}>
-                    <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: '4px', background: 'var(--foreground)', color: 'var(--background)', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '10px' }}>
+                    <span style={{ display: 'inline-block', padding: '0px 4px', borderRadius: '3px', background: 'var(--foreground)', color: 'var(--background)', fontSize: '8px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
                       {getModuleLabel(admin.assignedModuleType)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', color: 'var(--muted)' }}>
-                    <ArrowRight size={12} />
+                    <ArrowRight size={10} strokeWidth={3} />
                   </div>
                 </div>
               </Link>

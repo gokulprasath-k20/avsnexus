@@ -68,8 +68,12 @@ export default function TaskPage() {
     memory: number;
   } | null>(null);
 
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   useEffect(() => {
     fetch(`/api/tasks/${id}`)
+
       .then((r) => r.json())
       .then((d) => {
         setTask(d.task);
@@ -394,26 +398,48 @@ export default function TaskPage() {
         {/* Code editor — only for coding tasks */}
         {task.type === 'coding' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Language selector */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.id}
-                  onClick={() => handleLanguageChange(lang.id)}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${language === lang.id ? 'var(--primary)' : 'var(--border)'}`,
-                    background: language === lang.id ? 'var(--primary)' : 'var(--surface)',
-                    color: language === lang.id ? 'white' : 'var(--muted-fg)',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {lang.label}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.id}
+                    onClick={() => handleLanguageChange(lang.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      border: `1px solid ${language === lang.id ? 'var(--foreground)' : 'var(--border)'}`,
+                      background: language === lang.id ? 'var(--foreground)' : 'var(--surface)',
+                      color: language === lang.id ? 'var(--background)' : 'var(--muted-fg)',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setIsFullscreen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  background: 'var(--surface-hover)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer'
+                }}
+              >
+                Maximize
+              </button>
             </div>
 
             <div style={{ border: '1px solid var(--border)', borderRadius: '10px', overflow: 'hidden', flex: 1, minHeight: '400px' }}>
@@ -433,6 +459,50 @@ export default function TaskPage() {
                 }}
               />
             </div>
+
+            {/* Fullscreen Overlay */}
+            {isFullscreen && (
+               <div className="fixed inset-0 z-[100] bg-[var(--background)] flex flex-col">
+                  <div className="h-9 border-b border-[var(--border)] flex items-center justify-between px-4 bg-[var(--surface)]">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">{task.title}</span>
+                      <div className="w-px h-4 bg-[var(--border)]" />
+                      <span className="text-[10px] font-bold text-[var(--foreground)] uppercase">{language}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button 
+                        onClick={runCode}
+                        disabled={submitting}
+                        className="px-3 py-1 bg-[var(--foreground)] text-[var(--background)] rounded text-[10px] font-black uppercase tracking-tight flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all"
+                      >
+                        {submitting ? '...' : 'Run'}
+                      </button>
+                      <button 
+                        onClick={() => setIsFullscreen(false)}
+                        className="p-1.5 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <MonacoEditor
+                      height="100%"
+                      language={language === 'cpp' ? 'cpp' : language}
+                      value={code}
+                      onChange={(v) => setCode(v || '')}
+                      theme="vs-dark"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        scrollBeyondLastLine: false,
+                        padding: { top: 20 },
+                      }}
+                    />
+                  </div>
+               </div>
+            )}
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button

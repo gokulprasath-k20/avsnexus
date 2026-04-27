@@ -83,48 +83,49 @@ export default function ModuleDetailPage() {
         <ArrowLeft size={14} /> Back to modules
       </Link>
 
-      {/* Header card */}
+      {/* Header card - Compact */}
       <div
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
-          borderRadius: '12px',
-          padding: '24px',
-          marginBottom: '24px',
+          borderRadius: '8px',
+          padding: '16px',
+          marginBottom: '16px',
           display: 'flex',
-          alignItems: 'flex-start',
-          gap: '20px',
+          alignItems: 'center',
+          gap: '16px',
         }}
       >
-        <div style={{ fontSize: '48px' }}>{module.icon || '📚'}</div>
+        <div style={{ fontSize: '32px' }}>{module.icon || '📚'}</div>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--foreground)', marginBottom: '6px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--foreground)', marginBottom: '2px', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
             {module.name}
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: '1.6', marginBottom: '16px' }}>
+          <p style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '500', lineHeight: '1.4', marginBottom: '8px' }}>
             {module.description}
           </p>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '6px' }}>
             {stages.map((stage) => {
               const config = module.stageConfig?.[stage as keyof typeof module.stageConfig];
               return (
                 <div
                   key={stage}
                   style={{
-                    padding: '8px 14px',
+                    padding: '4px 10px',
                     background: 'var(--surface-hover)',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     textAlign: 'center',
+                    border: '1px solid var(--border)',
                   }}
                 >
-                  <div style={{ fontSize: '11px', color: stageColors[stage], fontWeight: '600', textTransform: 'capitalize', marginBottom: '4px' }}>
-                    {stage}
+                  <div style={{ fontSize: '8px', color: stageColors[stage], fontWeight: '900', textTransform: 'uppercase', marginBottom: '0px' }}>
+                    {stage.slice(0, 3)}
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--foreground)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '900', color: 'var(--foreground)', lineHeight: '1' }}>
                     {config?.count || 0}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                    {config?.pointsPerTask || 0} pts each
+                  <div style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '800' }}>
+                    {config?.pointsPerTask || 0}P
                   </div>
                 </div>
               );
@@ -133,23 +134,23 @@ export default function ModuleDetailPage() {
         </div>
       </div>
 
-      {/* Stage tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+      {/* Stage tabs - Tiny */}
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
         {stages.map((stage) => (
           <button
             key={stage}
             onClick={() => setActiveStage(stage)}
             style={{
-              padding: '7px 18px',
-              borderRadius: '8px',
-              border: `1px solid ${activeStage === stage ? stageColors[stage] : 'var(--border)'}`,
-              background: activeStage === stage ? `${stageColors[stage]}12` : 'var(--surface)',
-              color: activeStage === stage ? stageColors[stage] : 'var(--muted-fg)',
-              fontSize: '13px',
-              fontWeight: activeStage === stage ? '600' : '400',
+              padding: '4px 12px',
+              borderRadius: '6px',
+              border: `1px solid ${activeStage === stage ? 'var(--foreground)' : 'var(--border)'}`,
+              background: activeStage === stage ? 'var(--foreground)' : 'var(--surface)',
+              color: activeStage === stage ? 'var(--background)' : 'var(--muted-fg)',
+              fontSize: '10px',
+              fontWeight: '900',
               cursor: 'pointer',
-              textTransform: 'capitalize',
-              transition: 'all 0.15s',
+              textTransform: 'uppercase',
+              transition: 'all 0.1s',
             }}
           >
             {stage}
@@ -157,43 +158,29 @@ export default function ModuleDetailPage() {
         ))}
       </div>
 
-      {/* Tasks list */}
+      {/* Tasks list - High Density */}
       {stageTasks.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '10px',
-          }}
-        >
-          <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
-            No tasks available for this stage yet.
-          </p>
+        <div style={{ textAlign: 'center', padding: '30px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '11px', fontWeight: '700' }}>NO TASKS</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {stageTasks.map((task, index) => (
-            <Link
-              key={task._id}
-              href={`/tasks/${task._id}`}
-              style={{ textDecoration: 'none' }}
-            >
+            <Link key={task._id} href={`/tasks/${task._id}`} style={{ textDecoration: 'none' }}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 18px',
+                  gap: '10px',
+                  padding: '8px 12px',
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '8px',
+                  borderRadius: '6px',
                   cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all 0.1s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong)';
+                  e.currentTarget.style.borderColor = 'var(--foreground)';
                   e.currentTarget.style.background = 'var(--surface-hover)';
                 }}
                 onMouseLeave={(e) => {
@@ -201,33 +188,19 @@ export default function ModuleDetailPage() {
                   e.currentTarget.style.background = 'var(--surface)';
                 }}
               >
-                <div style={{ color: 'var(--border-strong)', flexShrink: 0 }}>
-                  <Circle size={18} />
+                <div style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: '900', width: '18px' }}>
+                  {(index + 1).toString().padStart(2, '0')}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--foreground)' }}>
-                    {index + 1}. {task.title}
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--foreground)', textTransform: 'uppercase' }}>
+                    {task.title}
                   </div>
-                  {task.topic && (
-                    <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
-                      {task.topic}
-                    </div>
-                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: stageColors[task.stage],
-                      background: `${stageColors[task.stage]}12`,
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    +{task.points} pts
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: '900', color: stageColors[task.stage], background: `${stageColors[task.stage]}12`, padding: '1px 6px', borderRadius: '3px', textTransform: 'uppercase' }}>
+                    {task.points}P
                   </span>
-                  <ChevronRight size={15} style={{ color: 'var(--muted)' }} />
+                  <ChevronRight size={10} strokeWidth={3} />
                 </div>
               </div>
             </Link>

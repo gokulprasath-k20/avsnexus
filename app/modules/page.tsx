@@ -110,13 +110,13 @@ export default function ModulesPage() {
             const colors = typeColors[module.type] || { bg: '#f1f5f9', text: '#64748b' };
             return (
               <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
-                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 h-full flex flex-col gap-3 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.99]">
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2.5 h-full flex flex-col gap-2 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.99]">
                   <div className="flex items-start justify-between">
-                    <span className="text-xl group-hover:scale-105 transition-transform duration-300 origin-left">
+                    <span className="text-lg group-hover:scale-105 transition-transform duration-300 origin-left">
                       {module.icon || '📚'}
                     </span>
                     <span
-                      className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold uppercase tracking-wider"
+                      className="px-1.5 py-0 rounded text-[7px] font-black uppercase tracking-tighter"
                       style={{
                         background: colors.bg,
                         color: colors.text,
@@ -127,42 +127,41 @@ export default function ModulesPage() {
                   </div>
 
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-[var(--foreground)] mb-1 group-hover:text-[var(--primary)] transition-colors">
+                    <h3 className="text-[11px] font-black text-[var(--foreground)] mb-0.5 group-hover:text-[var(--primary)] transition-colors leading-tight">
                       {module.name}
                     </h3>
-                    <p className="text-[10px] text-[var(--muted)] leading-relaxed line-clamp-2">
+                    <p className="text-[9px] text-[var(--muted)] leading-tight line-clamp-2 font-bold opacity-80">
                       {module.description}
                     </p>
                   </div>
 
                   {module.stageConfig && (
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-3 gap-1">
                       {[
-                        { label: 'Easy', count: module.stageConfig.easy.count, pts: module.stageConfig.easy.pointsPerTask },
-                        { label: 'Mid', count: module.stageConfig.intermediate.count, pts: module.stageConfig.intermediate.pointsPerTask },
-                        { label: 'Expert', count: module.stageConfig.expert.count, pts: module.stageConfig.expert.pointsPerTask },
+                        { label: 'E', count: module.stageConfig.easy.count, pts: module.stageConfig.easy.pointsPerTask },
+                        { label: 'M', count: module.stageConfig.intermediate.count, pts: module.stageConfig.intermediate.pointsPerTask },
+                        { label: 'X', count: module.stageConfig.expert.count, pts: module.stageConfig.expert.pointsPerTask },
                       ].map((stage) => (
                         <div
                           key={stage.label}
-                          className="p-1.5 bg-[var(--surface-hover)] rounded-lg text-center border border-transparent transition-colors group-hover:border-[var(--border)]"
+                          className="p-1 bg-[var(--surface-hover)] rounded-md text-center border border-transparent transition-colors group-hover:border-[var(--border)]"
                         >
-                          <div className="text-[8px] text-[var(--muted)] mb-0.5 font-bold uppercase tracking-tight">{stage.label}</div>
-                          <div className="text-xs font-black text-[var(--foreground)]">{stage.count}</div>
-                          <div className="text-[8px] text-[var(--muted)] font-bold">{stage.pts}PTS</div>
+                          <div className="text-[7px] text-[var(--muted)] mb-0 font-black uppercase">{stage.label}</div>
+                          <div className="text-[10px] font-black text-[var(--foreground)] leading-none">{stage.count}</div>
+                          <div className="text-[7px] text-[var(--muted)] font-black">{stage.pts}P</div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
+                  <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-[var(--muted)] uppercase font-extrabold tracking-wider">Potential</span>
-                      <span className="text-xs font-black text-[var(--foreground)]">
-                        {totalPoints(module).toLocaleString()} <span className="text-[8px] font-bold text-[var(--muted)]">PTS</span>
+                      <span className="text-[9px] font-black text-[var(--foreground)] leading-none">
+                        {totalPoints(module).toLocaleString()} <span className="text-[7px] font-black text-[var(--muted)]">PTS</span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--primary)] group-hover:gap-2 transition-all uppercase tracking-tight">
-                      Start <ArrowRight size={12} strokeWidth={3} />
+                    <div className="flex items-center gap-1 text-[9px] font-black text-[var(--primary)] group-hover:gap-1.5 transition-all uppercase tracking-tighter">
+                      START <ArrowRight size={10} strokeWidth={4} />
                     </div>
                   </div>
                 </div>

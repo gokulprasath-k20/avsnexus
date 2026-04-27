@@ -36,40 +36,40 @@ export default function SuperAdminStudentsPage() {
   const nonEliteStudents = filteredStudents.filter((s) => s.category !== 'elite');
 
   const StudentTable = ({ title, data }: { title: string; data: Student[] }) => (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {title} <span style={{ fontWeight: '400', marginLeft: '4px' }}>({data.length})</span>
+    <div style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <h3 style={{ fontSize: '9px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          {title} <span style={{ opacity: 0.5, fontWeight: '400', marginLeft: '2px' }}>{data.length}</span>
         </h3>
       </div>
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
-        <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 100px 60px 80px', gap: '12px', alignItems: 'center', background: 'var(--surface-hover)' }}>
-          {['Student', 'Dept', 'Year', 'Points'].map((h) => (
-            <span key={h} style={{ fontSize: '9px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+        <div style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 60px 40px 50px', gap: '8px', alignItems: 'center', background: 'var(--surface-hover)' }}>
+          {['Student', 'Dept', 'Yr', 'Pts'].map((h) => (
+            <span key={h} style={{ fontSize: '8px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</span>
           ))}
         </div>
         {data.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', fontSize: '11px' }}>No records.</div>
+          <div style={{ padding: '12px', textAlign: 'center', color: 'var(--muted)', fontSize: '10px' }}>Empty</div>
         ) : (
           data.map((student) => {
             const initials = student.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
             return (
               <div
                 key={student._id}
-                style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 100px 60px 80px', gap: '12px', alignItems: 'center' }}
+                style={{ padding: '5px 10px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 60px 40px 50px', gap: '8px', alignItems: 'center' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: '700', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '900', flexShrink: 0 }}>
                     {initials}
                   </div>
                   <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{student.name}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{student.email}</div>
+                    <div style={{ fontSize: '11px', fontVariationSettings: '"wght" 700', color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', lineHeight: '1.1' }}>{student.name}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{student.email}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--foreground)' }}>{student.department || '-'}</div>
-                <div style={{ fontSize: '11px', color: 'var(--foreground)' }}>{student.year ? (student.year === 1 ? 'I' : student.year === 2 ? 'II' : student.year === 3 ? 'III' : 'IV') : '-'}</div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--foreground)' }}>{student.totalPoints.toLocaleString()}</div>
+                <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--foreground)', textTransform: 'uppercase' }}>{student.department || '-'}</div>
+                <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--foreground)' }}>{student.year ? (student.year === 1 ? 'I' : student.year === 2 ? 'II' : student.year === 3 ? 'III' : 'IV') : '-'}</div>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: 'var(--foreground)' }}>{student.totalPoints.toLocaleString()}</div>
               </div>
             );
           })
