@@ -105,18 +105,18 @@ export default function ModulesPage() {
           <p className="text-[var(--muted)] text-sm font-medium">No modules match your search.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-8">
           {filtered.map((module) => {
             const colors = typeColors[module.type] || { bg: '#f1f5f9', text: '#64748b' };
             return (
               <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
-                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 h-full flex flex-col gap-4 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-md hover:-translate-y-1 active:scale-[0.98]">
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 h-full flex flex-col gap-3 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.99]">
                   <div className="flex items-start justify-between">
-                    <span className="text-3xl group-hover:scale-105 transition-transform duration-300 origin-left">
+                    <span className="text-xl group-hover:scale-105 transition-transform duration-300 origin-left">
                       {module.icon || '📚'}
                     </span>
                     <span
-                      className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                      className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold uppercase tracking-wider"
                       style={{
                         background: colors.bg,
                         color: colors.text,
@@ -127,16 +127,16 @@ export default function ModulesPage() {
                   </div>
 
                   <div className="flex-1">
-                    <h3 className="text-base font-bold text-[var(--foreground)] mb-1.5 group-hover:text-[var(--primary)] transition-colors">
+                    <h3 className="text-sm font-bold text-[var(--foreground)] mb-1 group-hover:text-[var(--primary)] transition-colors">
                       {module.name}
                     </h3>
-                    <p className="text-xs text-[var(--muted)] leading-normal line-clamp-2">
+                    <p className="text-[10px] text-[var(--muted)] leading-relaxed line-clamp-2">
                       {module.description}
                     </p>
                   </div>
 
                   {module.stageConfig && (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {[
                         { label: 'Easy', count: module.stageConfig.easy.count, pts: module.stageConfig.easy.pointsPerTask },
                         { label: 'Mid', count: module.stageConfig.intermediate.count, pts: module.stageConfig.intermediate.pointsPerTask },
@@ -144,25 +144,25 @@ export default function ModulesPage() {
                       ].map((stage) => (
                         <div
                           key={stage.label}
-                          className="p-2 bg-[var(--surface-hover)] rounded-xl text-center border border-transparent transition-colors group-hover:border-[var(--border)]"
+                          className="p-1.5 bg-[var(--surface-hover)] rounded-lg text-center border border-transparent transition-colors group-hover:border-[var(--border)]"
                         >
-                          <div className="text-[10px] text-[var(--muted)] mb-0.5 font-medium uppercase tracking-tight">{stage.label}</div>
-                          <div className="text-sm font-bold text-[var(--foreground)]">{stage.count}</div>
-                          <div className="text-[9px] text-[var(--muted)] font-medium">{stage.pts}pts</div>
+                          <div className="text-[8px] text-[var(--muted)] mb-0.5 font-bold uppercase tracking-tight">{stage.label}</div>
+                          <div className="text-xs font-black text-[var(--foreground)]">{stage.count}</div>
+                          <div className="text-[8px] text-[var(--muted)] font-bold">{stage.pts}PTS</div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                  <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-[var(--muted)] uppercase font-bold tracking-wider">Potential</span>
-                      <span className="text-sm font-bold text-[var(--foreground)]">
-                        {totalPoints(module).toLocaleString()} <span className="text-[10px] font-medium text-[var(--muted)]">pts</span>
+                      <span className="text-[8px] text-[var(--muted)] uppercase font-extrabold tracking-wider">Potential</span>
+                      <span className="text-xs font-black text-[var(--foreground)]">
+                        {totalPoints(module).toLocaleString()} <span className="text-[8px] font-bold text-[var(--muted)]">PTS</span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary)] group-hover:gap-3 transition-all">
-                      Start Module <ArrowRight size={16} strokeWidth={2.5} />
+                    <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[var(--primary)] group-hover:gap-2 transition-all uppercase tracking-tight">
+                      Start <ArrowRight size={12} strokeWidth={3} />
                     </div>
                   </div>
                 </div>
