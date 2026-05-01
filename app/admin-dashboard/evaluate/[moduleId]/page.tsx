@@ -56,6 +56,7 @@ interface Submission {
   isAutoSubmitted: boolean;
   totalQuestions: number;
   attendedQuestions: number;
+  reason?: string;
 }
 
 export default function EvaluationPage() {
