@@ -16,6 +16,8 @@ interface User {
   totalPoints: number;
   avatar?: string;
   category?: 'elite' | 'non-elite';
+  currentStreak?: number;
+  lastCompletedDate?: string;
 }
 
 interface AuthContextType {

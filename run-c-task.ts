@@ -38,7 +38,7 @@ int main() {
       
       const result = await executeCode(solutionCode, 'c', tc.input);
       
-      const output = result.output ? result.output.trim() : '';
+      const output = result.stdout ? result.stdout.trim() : '';
       const expected = tc.expectedOutput.trim();
       
       console.log(`Output: ${output}`);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
+import mongoose from 'mongoose';
 import Submission from '@/models/Submission';
 import Score from '@/models/Score';
 import User from '@/models/User';
@@ -24,7 +25,7 @@ export const PATCH = requireAuth(async (request: NextRequest, user) => {
     submission.marks = marks;
     submission.remarks = remarks;
     submission.status = status;
-    submission.reviewedBy = user.userId;
+    submission.reviewedBy = new mongoose.Types.ObjectId(user.userId);
     submission.reviewedAt = new Date();
     
     // For backward compatibility

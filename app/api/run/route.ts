@@ -24,16 +24,16 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
 
     const result = await executeCode(code, language, inputToRun);
 
-    const stdout = result.output || '';
-    const stderr = '';
-    const compile_output = '';
+    const stdout = result.stdout || '';
+    const stderr = result.stderr || '';
+    const compile_output = result.compileError || '';
 
     return NextResponse.json({
       stdout,
       stderr,
       compile_output,
       status: 'Finished',
-      time: result.cpuTime || '0',
+      time: result.time || '0',
       memory: result.memory || 0,
     }, { status: 200 });
 

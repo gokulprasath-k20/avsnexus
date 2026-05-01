@@ -471,7 +471,7 @@ export default function TaskPage() {
 
               {!result && (
                 <button
-                  onClick={submitMCQ}
+                  onClick={() => submitMCQ()}
                   disabled={submitting || selectedOptions.length === 0 || testFailed}
                   style={{
                     width: '100%',
@@ -714,7 +714,7 @@ export default function TaskPage() {
                 {submitting ? 'Running...' : 'Run Code'}
               </button>
               <button
-                onClick={submitCoding}
+                onClick={() => submitCoding()}
                 disabled={submitting || testFailed}
                 style={{
                   flex: 1,

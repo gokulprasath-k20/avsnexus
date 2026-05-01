@@ -163,7 +163,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
         try {
           const result = await executeCode(code, language, tc.input);
 
-          const output = normalizeStr(result.stdout || result.output);
+          const output = normalizeStr(result.stdout || '');
           const error = normalizeStr(result.stderr || '');
           const compileErr = normalizeStr(result.compileError || '');
           const expected = normalizeStr(tc.expectedOutput);
@@ -174,7 +174,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
           testResults.push({
             testCase: i + 1,
             status: compileErr ? 'Compilation Error' : (passed ? 'Accepted' : 'Wrong Answer'),
-            time: result.time || result.cpuTime || '0',
+            time: result.time || '0',
             memory: result.memory || 0,
             output: output || error || compileErr,
             expected: tc.isHidden ? undefined : expected,

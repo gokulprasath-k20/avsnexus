@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
+import mongoose from 'mongoose';
 import Submission from '@/models/Submission';
 import Score from '@/models/Score';
 import User from '@/models/User';
@@ -28,7 +29,7 @@ export const PATCH = requireAuth(
           score: score || 0,
           feedback,
           status: 'reviewed',
-          reviewedBy: user.userId,
+          reviewedBy: new mongoose.Types.ObjectId(user.userId),
           reviewedAt: new Date(),
         },
         { new: true }
