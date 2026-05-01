@@ -138,6 +138,7 @@ export async function runWithLocal(code: string, language: string, input: string
       compileError: compileError.trim(),
       time: (endTime[0] + endTime[1] / 1e9).toFixed(2),
       memory: 0,
+      statusCode: 200,
     };
   }
 }
