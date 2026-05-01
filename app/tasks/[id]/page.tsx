@@ -72,34 +72,167 @@ export default function TaskPage() {
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  useEffect(() => {
-    fetch(getApiUrl(`/api/tasks/${id}`))
+  // Anti-cheating state
+  const [violationCount, setViolationCount] = useState(0);
+  const [testFailed, setTestFailed] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
 
-      .then((r) => r.json())
-      .then((d) => {
-        setTask(d.task);
-        if (d.task?.type === 'coding' && d.task?.starterCode) {
-          const langs = Object.keys(d.task.starterCode);
-          if (langs.length > 0) {
-            setLanguage(langs[0]);
-            setCode(d.task.starterCode[langs[0]] || '');
+  const [timeLeft, setTimeLeft] = useState<number>(30 * 60);
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [taskRes, subRes] = await Promise.all([
+          fetch(getApiUrl(`/api/tasks/${id}`)),
+          fetch(getApiUrl(`/api/submissions?taskId=${id}`))
+        ]);
+
+        const taskData = await taskRes.json();
+        const subData = await subRes.json();
+
+        if (taskRes.ok) {
+          setTask(taskData.task);
+
+          // Check if already completed
+          const isDone = (subData.submissions || []).some((s: any) => 
+            s.status === 'pass' || s.status === 'accepted' || s.status === 'needs_review'
+          );
+
+          if (isDone) {
+            toast.error('Task already completed. Redirecting...');
+            router.replace('/student-dashboard');
+            return;
           }
-        }
-        if (d.task?.type === 'mcq' && d.task?.timeLimitMCQ) {
-          setMcqTimer(d.task.timeLimitMCQ);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
 
-  // MCQ countdown
+          if (taskData.task?.type === 'coding' && taskData.task?.starterCode) {
+            const langs = Object.keys(taskData.task.starterCode);
+            if (langs.length > 0) {
+              setLanguage(langs[0]);
+              setCode(taskData.task.starterCode[langs[0]] || '');
+            }
+          }
+          
+          // Always record start time for timed tests
+          fetch(getApiUrl('/api/submissions/start'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskId: id }),
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.startedAt) {
+              setStartedAt(data.startedAt);
+              setTimeLeft(data.duration);
+            }
+          });
+        }
+      } catch (err) {
+        toast.error('Failed to load task');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, router]);
+
+  // Timer logic
   useEffect(() => {
-    if (mcqTimer === null || mcqTimer <= 0) return;
+    if (loading || !startedAt || submitting || result || testFailed) return;
+
     const interval = setInterval(() => {
-      setMcqTimer((t) => (t !== null ? t - 1 : null));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleAutoSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(interval);
-  }, [mcqTimer]);
+  }, [loading, startedAt, submitting, result, testFailed]);
+
+  const handleAutoSubmit = () => {
+    if (task?.type === 'mcq') {
+      submitMCQ(true);
+    } else if (task?.type === 'coding') {
+      submitCoding(true);
+    }
+  };
+
+  // Anti-cheating logic
+  useEffect(() => {
+    if (loading || !task || testFailed || result) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleViolation('Tab switched or browser minimized');
+      }
+    };
+
+    const handleBlur = () => {
+      handleViolation('Window lost focus');
+    };
+
+    const handleViolation = (reason: string) => {
+      setViolationCount((prev) => {
+        const next = prev + 1;
+        if (next === 1) {
+          toast.error('WARNING: Do not leave this tab. One more violation and your test will fail!', { duration: 5000 });
+          setWarningMessage('Warning: Do not switch tabs!');
+        } else if (next >= 2) {
+          setTestFailed(true);
+          failTest('Automatic fail due to multiple tab switches');
+        }
+        return next;
+      });
+    };
+
+    const preventDefault = (e: any) => {
+      e.preventDefault();
+      toast.error('This action is restricted during the test!');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('copy', preventDefault);
+    document.addEventListener('paste', preventDefault);
+    document.addEventListener('cut', preventDefault);
+    document.addEventListener('contextmenu', preventDefault);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('copy', preventDefault);
+      document.removeEventListener('paste', preventDefault);
+      document.removeEventListener('cut', preventDefault);
+      document.removeEventListener('contextmenu', preventDefault);
+    };
+  }, [loading, task, testFailed, result]);
+
+  const failTest = async (reason: string) => {
+    setSubmitting(true);
+    try {
+      await fetch(getApiUrl('/api/submissions'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          taskId: id, 
+          status: 'fail', 
+          violationCount: violationCount + 1,
+          feedback: `Test failed: ${reason}` 
+        }),
+      });
+      toast.error('TEST FAILED: You switched tabs multiple times.');
+    } catch (err) {
+      console.error('Failed to report violation:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
@@ -131,15 +264,22 @@ export default function TaskPage() {
     }
   };
 
-  const submitCoding = async () => {
-    if (!code.trim()) return toast.error('Please write some code before submitting');
+  const submitCoding = async (isAuto = false) => {
+    if (!isAuto && !code.trim()) return toast.error('Please write some code before submitting');
     setSubmitting(true);
     setRunResult(null); // clear previous run result
     try {
       const res = await fetch(getApiUrl('/api/submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: id, code, language }),
+        body: JSON.stringify({ 
+          taskId: id, 
+          code, 
+          language,
+          startedAt,
+          isAutoSubmitted: isAuto,
+          status: isAuto ? 'fail' : 'needs_review'
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -148,7 +288,8 @@ export default function TaskPage() {
         score: data.submission.score,
         testResults: data.submission.testResults,
       });
-      if (data.submission.status === 'accepted') toast.success(`Correct Answer! +${data.submission.score} points`);
+      if (isAuto) toast.error('Time up! Progress saved.');
+      else if (data.submission.status === 'accepted' || data.submission.status === 'needs_review') toast.success(`Solution submitted! +${data.submission.score} points`);
       else toast.error('Incorrect Answer. Try again next time.');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Submission failed');
@@ -157,19 +298,25 @@ export default function TaskPage() {
     }
   };
 
-  const submitMCQ = async () => {
-    if (selectedOptions.length === 0) return toast.error('Please select an answer');
+  const submitMCQ = async (isAuto = false) => {
+    if (!isAuto && selectedOptions.length === 0) return toast.error('Please select an answer');
     setSubmitting(true);
     try {
       const res = await fetch(getApiUrl('/api/submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: id, selectedAnswers: selectedOptions }),
+        body: JSON.stringify({ 
+          taskId: id, 
+          selectedAnswers: selectedOptions,
+          startedAt,
+          isAutoSubmitted: isAuto
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResult({ status: data.submission.status, score: data.submission.score });
-      if (data.submission.score > 0) toast.success(`Correct Answer! +${data.submission.score} points`);
+      if (isAuto) toast.error('Time up! Your answers were automatically submitted.');
+      else if (data.submission.score > 0) toast.success(`Correct Answer! +${data.submission.score} points`);
       else toast.error('Wrong Answer. Try again next time.');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Submission failed');
@@ -211,9 +358,48 @@ export default function TaskPage() {
 
   return (
     <AppShell title={task.title} subtitle={`${task.stage} • ${task.points} points`}>
-      <Link href={`/modules`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', marginBottom: '20px' }}>
+      <Link href={`/modules`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', marginBottom: '20px' }} onClick={(e) => {
+        if (!testFailed && !result && !window.confirm('Are you sure you want to leave? Your progress will be lost.')) {
+          e.preventDefault();
+        }
+      }}>
         <ArrowLeft size={14} /> Back
       </Link>
+
+      {testFailed && (
+        <div style={{
+          background: 'rgba(220,38,38,0.1)',
+          border: '1px solid var(--danger)',
+          borderRadius: '12px',
+          padding: '24px',
+          textAlign: 'center',
+          marginBottom: '20px',
+        }}>
+          <X size={48} color="var(--danger)" style={{ margin: '0 auto 16px' }} />
+          <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--danger)', marginBottom: '8px' }}>Test Failed</h2>
+          <p style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: '500' }}>
+            This test has been automatically marked as FAIL due to tab switching or window focus violations.
+          </p>
+        </div>
+      )}
+
+      {violationCount === 1 && !testFailed && (
+        <div style={{
+          background: 'rgba(234,179,8,0.1)',
+          border: '1px solid var(--warning)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '20px',
+          fontSize: '13px',
+          fontWeight: '600',
+          color: 'var(--warning)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          ⚠️ Warning: You switched tabs. Next time, the test will be failed automatically!
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: task.type === 'coding' ? '1fr 1fr' : '1fr', gap: '20px' }}>
         {/* Problem description */}
@@ -232,21 +418,19 @@ export default function TaskPage() {
           {/* MCQ options */}
           {task.type === 'mcq' && task.options && (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '22px' }}>
-              {mcqTimer !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '500' }}>Choose the correct answer</span>
-                  <span style={{
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    color: (mcqTimer || 0) < 10 ? 'var(--danger)' : 'var(--foreground)',
-                    background: 'var(--surface-hover)',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                  }}>
-                    ⏱ {mcqTimer}s
-                  </span>
-                </div>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: '500' }}>Choose the correct answer</span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: timeLeft < 60 ? 'var(--danger)' : 'var(--foreground)',
+                  background: 'var(--surface-hover)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                }}>
+                  ⏱ {Math.floor(timeLeft / 60)}:{ (timeLeft % 60).toString().padStart(2, '0') }
+                </span>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {task.options.map((opt, idx) => {
                   const isSelected = selectedOptions.includes(idx);
@@ -254,10 +438,10 @@ export default function TaskPage() {
                     <button
                       key={idx}
                       onClick={() => {
-                        if (result) return;
+                        if (result || testFailed) return;
                         setSelectedOptions(isSelected ? selectedOptions.filter((i) => i !== idx) : [idx]);
                       }}
-                      disabled={!!result}
+                      disabled={!!result || testFailed}
                       style={{
                         padding: '12px 16px',
                         textAlign: 'left',
@@ -288,7 +472,7 @@ export default function TaskPage() {
               {!result && (
                 <button
                   onClick={submitMCQ}
-                  disabled={submitting || selectedOptions.length === 0}
+                  disabled={submitting || selectedOptions.length === 0 || testFailed}
                   style={{
                     width: '100%',
                     marginTop: '16px',
@@ -369,7 +553,7 @@ export default function TaskPage() {
               {!result && (
                 <button
                   onClick={submitFile}
-                  disabled={submitting || !file}
+                  disabled={submitting || !file || testFailed}
                   style={{
                     width: '100%',
                     marginTop: '14px',
@@ -448,9 +632,10 @@ export default function TaskPage() {
                 height="100%"
                 language={language === 'cpp' ? 'cpp' : language}
                 value={code}
-                onChange={(v) => setCode(v || '')}
+                onChange={(v) => !testFailed && setCode(v || '')}
                 theme="vs-dark"
                 options={{
+                  readOnly: testFailed,
                   minimap: { enabled: false },
                   fontSize: 13,
                   lineNumbers: 'on',
@@ -530,7 +715,7 @@ export default function TaskPage() {
               </button>
               <button
                 onClick={submitCoding}
-                disabled={submitting}
+                disabled={submitting || testFailed}
                 style={{
                   flex: 1,
                   padding: '10px',

@@ -168,7 +168,6 @@ export default function NotificationBell() {
               notifications.map((n) => {
                 const content = (
                   <div
-                    key={n._id}
                     style={{
                       padding: '12px 16px',
                       borderBottom: '1px solid var(--border)',

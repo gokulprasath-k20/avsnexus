@@ -33,7 +33,7 @@ export const PATCH = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin', 'moduleAdmin']
+  ['superadmin', 'moduleAdmin']
 );
 
 // DELETE /api/tasks/[id]
@@ -48,5 +48,5 @@ export const DELETE = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin', 'moduleAdmin']
+  ['superadmin', 'moduleAdmin']
 );

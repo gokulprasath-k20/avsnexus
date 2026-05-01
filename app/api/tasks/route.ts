@@ -88,5 +88,5 @@ export const POST = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin', 'moduleAdmin']
+  ['superadmin', 'moduleAdmin']
 );

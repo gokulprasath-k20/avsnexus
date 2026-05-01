@@ -24,7 +24,7 @@ export const GET = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin']
+  ['superadmin']
 );
 
 // PATCH /api/admin/users - assign module admin or change role
@@ -63,5 +63,5 @@ export const PATCH = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin']
+  ['superadmin']
 );

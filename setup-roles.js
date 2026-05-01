@@ -34,7 +34,7 @@ mongoose.connect(uri).then(async () => {
       name: 'Super Admin',
       email: 'superadmin@avsec',
       password: 'avsecsuperadmin',
-      role: 'superAdmin'
+      role: 'superadmin'
     }
   ];
 

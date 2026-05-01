@@ -69,7 +69,7 @@ export const PATCH = requireAuth(
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   },
-  ['superAdmin', 'moduleAdmin']
+  ['superadmin', 'moduleAdmin']
 );
 
 // GET /api/submissions/[id]

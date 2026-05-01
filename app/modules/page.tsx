@@ -33,17 +33,51 @@ const typeLabels: Record<string, string> = {
   design: 'Design',
 };
 
+interface Task {
+  _id: string;
+  moduleId: string;
+}
+
+interface Submission {
+  _id: string;
+  taskId: { _id: string } | string;
+  status: string;
+}
+
 export default function ModulesPage() {
   const [modules, setModules] = useState<Module[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch(getApiUrl('/api/modules'))
-      .then((r) => r.json())
-      .then((d) => setModules(d.modules || []))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const [modRes, taskRes, subRes] = await Promise.all([
+          fetch(getApiUrl('/api/modules')),
+          fetch(getApiUrl('/api/tasks')),
+          fetch(getApiUrl('/api/submissions'))
+        ]);
+        
+        const modData = await modRes.json();
+        const taskData = await taskRes.json();
+        const subData = await subRes.json();
+
+        setModules(modData.modules || []);
+        setTasks(taskData.tasks || []);
+        setSubmissions((subData.submissions || []).filter((s: any) => 
+          s.status === 'pass' || s.status === 'accepted' || s.status === 'needs_review'
+        ));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   const filtered = modules.filter((m) => {
@@ -109,13 +143,23 @@ export default function ModulesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-8">
           {filtered.map((module) => {
             const colors = typeColors[module.type] || { bg: '#f1f5f9', text: '#64748b' };
+            const completedTaskIds = new Set(submissions.map(s => typeof s.taskId === 'object' ? s.taskId._id : s.taskId));
+            const moduleTasks = tasks.filter(t => t.moduleId === module._id);
+            const moduleCompleted = moduleTasks.filter(t => completedTaskIds.has(t._id)).length;
+            const moduleAvailable = moduleTasks.length - moduleCompleted;
+
             return (
               <Link key={module._id} href={`/modules/${module._id}`} className="group block h-full">
                 <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2.5 h-full flex flex-col gap-2 transition-all duration-300 hover:border-[var(--border-strong)] hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.99]">
                   <div className="flex items-start justify-between">
-                    <span className="text-lg group-hover:scale-105 transition-transform duration-300 origin-left">
-                      {module.icon || '📚'}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-lg group-hover:scale-105 transition-transform duration-300 origin-left">
+                        {module.icon || '📚'}
+                      </span>
+                      <div className="text-[7px] font-black text-[var(--muted)] uppercase">
+                        {moduleAvailable} Tasks Available
+                      </div>
+                    </div>
                     <span
                       className="px-1.5 py-0 rounded text-[7px] font-black uppercase tracking-tighter"
                       style={{
@@ -126,7 +170,7 @@ export default function ModulesPage() {
                       {typeLabels[module.type] || module.type}
                     </span>
                   </div>
-
+// ... existing lines ...
                   <div className="flex-1">
                     <h3 className="text-[11px] font-black text-[var(--foreground)] mb-0.5 group-hover:text-[var(--primary)] transition-colors leading-tight">
                       {module.name}
@@ -162,7 +206,7 @@ export default function ModulesPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-[9px] font-black text-[var(--primary)] group-hover:gap-1.5 transition-all uppercase tracking-tighter">
-                      START <ArrowRight size={10} strokeWidth={4} />
+                      {moduleAvailable === 0 ? 'REVIEW' : 'START'} <ArrowRight size={10} strokeWidth={4} />
                     </div>
                   </div>
                 </div>

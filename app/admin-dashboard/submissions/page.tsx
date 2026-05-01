@@ -5,11 +5,13 @@ import AppShell from '@/components/AppShell';
 import { ExternalLink, Check, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiUrl } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 interface Submission {
   _id: string;
-  studentId: { name: string; email: string };
+  studentId: { _id: string; name: string; email: string };
   taskId: { title: string; type: string; stage: string; points: number; submissionGuidelines?: string };
+  moduleId: string;
   status: string;
   score: number;
   fileUrl?: string;
@@ -22,10 +24,20 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminSubmissionsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [reviewForm, setReviewForm] = useState({ score: 0, feedback: '' });
+
+  const handleEvaluate = (sub: Submission) => {
+    if (sub.taskId?.type === 'coding' || sub.taskId?.type === 'mcq') {
+      router.push(`/admin-dashboard/evaluate/${sub.moduleId}?studentId=${sub.studentId._id}`);
+    } else {
+      setReviewing(sub._id); 
+      setReviewForm({ score: sub.score || 0, feedback: sub.feedback || '' });
+    }
+  };
 
   useEffect(() => {
     fetch(getApiUrl('/api/submissions'))
@@ -133,7 +145,7 @@ export default function AdminSubmissionsPage() {
                     )}
                     
                     <button
-                      onClick={() => { setReviewing(sub._id); setReviewForm({ score: sub.score || 0, feedback: sub.feedback || '' }); }}
+                      onClick={() => handleEvaluate(sub)}
                       className="px-3 h-7 text-[11px] font-bold rounded-md border border-[var(--border)] bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all"
                     >
                       Evaluate

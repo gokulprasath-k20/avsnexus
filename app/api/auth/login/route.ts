@@ -6,16 +6,24 @@ import { signToken } from '@/lib/jwt';
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { email, password } = await request.json();
+    const { identifier, password } = await request.json();
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email/Register number and password are required' },
         { status: 400 }
       );
     }
 
-    const user = await User.findOne({ email, isActive: true });
+    const query = {
+      $or: [
+        { registerNumber: identifier },
+        { email: identifier.toLowerCase() }
+      ],
+      isActive: true
+    };
+
+    const user = await User.findOne(query);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -33,6 +41,7 @@ export async function POST(request: NextRequest) {
 
     const token = signToken({
       userId: user._id.toString(),
+      registerNumber: user.registerNumber,
       email: user.email,
       role: user.role,
       name: user.name,
@@ -44,10 +53,12 @@ export async function POST(request: NextRequest) {
       user: {
         id: user._id,
         name: user.name,
+        registerNumber: user.registerNumber,
         email: user.email,
         role: user.role,
         department: user.department,
         year: user.year,
+        section: user.section,
         assignedModuleType: user.assignedModuleType,
         totalPoints: user.totalPoints,
         avatar: user.avatar,

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
 import { ArrowLeft, Lock, CheckCircle, Circle, ChevronRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Task {
   _id: string;
@@ -14,6 +15,7 @@ interface Task {
   stage: string;
   points: number;
   topic?: string;
+  isCompleted?: boolean;
 }
 
 interface Module {
@@ -39,6 +41,7 @@ export default function ModuleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [module, setModule] = useState<Module | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
   const [activeStage, setActiveStage] = useState('easy');
   const [loading, setLoading] = useState(true);
 
@@ -46,9 +49,18 @@ export default function ModuleDetailPage() {
     Promise.all([
       fetch(`/api/modules/${id}`).then((r) => r.json()),
       fetch(`/api/tasks?moduleId=${id}`).then((r) => r.json()),
-    ]).then(([modData, taskData]) => {
+      fetch(`/api/submissions?moduleId=${id}`).then((r) => r.json()),
+    ]).then(([modData, taskData, subData]) => {
       setModule(modData.module);
       setTasks(taskData.tasks || []);
+      
+      const completed = new Set<string>();
+      (subData.submissions || []).forEach((s: any) => {
+        if (s.status === 'pass' || s.status === 'accepted' || s.status === 'needs_review') {
+          completed.add(typeof s.taskId === 'object' ? s.taskId._id : s.taskId);
+        }
+      });
+      setCompletedTaskIds(completed);
     }).finally(() => setLoading(false));
   }, [id]);
 
@@ -134,79 +146,102 @@ export default function ModuleDetailPage() {
         </div>
       </div>
 
-      {/* Stage tabs - Tiny */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+      {/* Compact Stage Tabs */}
+      <div className="flex gap-1 mb-4 overflow-x-auto pb-1 scrollbar-hide">
         {stages.map((stage) => (
           <button
             key={stage}
             onClick={() => setActiveStage(stage)}
-            style={{
-              padding: '4px 12px',
-              borderRadius: '6px',
-              border: `1px solid ${activeStage === stage ? 'var(--foreground)' : 'var(--border)'}`,
-              background: activeStage === stage ? 'var(--foreground)' : 'var(--surface)',
-              color: activeStage === stage ? 'var(--background)' : 'var(--muted-fg)',
-              fontSize: '10px',
-              fontWeight: '900',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              transition: 'all 0.1s',
-            }}
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all shrink-0 ${
+              activeStage === stage
+                ? 'bg-[var(--foreground)] border-[var(--foreground)] text-[var(--background)]'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted-fg)]'
+            }`}
           >
             {stage}
           </button>
         ))}
       </div>
 
-      {/* Tasks list - High Density */}
-      {stageTasks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '30px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <p style={{ color: 'var(--muted)', fontSize: '11px', fontWeight: '700' }}>NO TASKS</p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {stageTasks.map((task, index) => (
-            <Link key={task._id} href={`/tasks/${task._id}`} style={{ textDecoration: 'none' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '8px 12px',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  transition: 'all 0.1s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--foreground)';
-                  e.currentTarget.style.background = 'var(--surface-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)';
-                  e.currentTarget.style.background = 'var(--surface)';
-                }}
-              >
-                <div style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: '900', width: '18px' }}>
-                  {(index + 1).toString().padStart(2, '0')}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--foreground)', textTransform: 'uppercase' }}>
-                    {task.title}
+      <div className="space-y-6">
+        {/* Available Tasks Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <h3 className="text-[9px] font-black text-[var(--muted)] uppercase tracking-[0.2em]">Available Tasks</h3>
+            <div className="h-[1px] flex-1 bg-[var(--border)] opacity-30"></div>
+          </div>
+
+          {stageTasks.filter(t => !completedTaskIds.has(t._id)).length === 0 ? (
+            <div className="p-6 glass-panel rounded-xl text-center border-dashed opacity-50">
+              <p className="text-[9px] text-[var(--muted)] font-black uppercase tracking-tighter">No pending tasks in this stage</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-1.5">
+              {stageTasks.filter(t => !completedTaskIds.has(t._id)).map((task, index) => {
+                const taskLink = task.type === 'coding' ? `/playground/${task._id}` : `/tasks/${task._id}`;
+                return (
+                  <Link key={task._id} href={taskLink} className="no-underline group">
+                    <div className="glass-panel rounded-xl p-2.5 flex items-center justify-between hover:border-[var(--primary)]/50 bg-[var(--surface)] active:scale-[0.99] transition-all">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-6 h-6 rounded bg-[var(--surface-hover)] text-[var(--muted)] flex items-center justify-center text-[10px] font-black shrink-0 border border-[var(--border)]">
+                          {(index + 1).toString().padStart(2, '0')}
+                        </div>
+                        <div className="overflow-hidden">
+                          <h4 className="text-[11px] font-extrabold text-[var(--foreground)] leading-tight truncate uppercase tracking-tight">
+                            {task.title}
+                          </h4>
+                          <p className="text-[7px] text-[var(--muted)] font-black uppercase tracking-tighter">
+                            {task.points} Points Available
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight size={10} className="text-[var(--primary)] opacity-40 group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Completed Tasks Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <h3 className="text-[9px] font-black text-[var(--success)] uppercase tracking-[0.2em]">Completed</h3>
+            <div className="h-[1px] flex-1 bg-[var(--success)] opacity-10"></div>
+          </div>
+
+          {stageTasks.filter(t => completedTaskIds.has(t._id)).length === 0 ? (
+            <div className="p-4 rounded-xl border border-[var(--border)] border-dashed text-center opacity-30">
+              <p className="text-[8px] text-[var(--muted)] font-black uppercase">None completed yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-1.5 opacity-70">
+              {stageTasks.filter(t => completedTaskIds.has(t._id)).map((task) => (
+                <div 
+                  key={task._id} 
+                  className="glass-panel rounded-xl p-2.5 flex items-center justify-between bg-[var(--surface-hover)]/30 border border-[var(--border)]"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-6 h-6 rounded bg-[var(--success)]/10 text-[var(--success)] flex items-center justify-center shrink-0 border border-[var(--success)]/20">
+                      <CheckCircle size={10} />
+                    </div>
+                    <div className="overflow-hidden">
+                      <h4 className="text-[11px] font-bold text-[var(--muted-fg)] leading-tight truncate uppercase">
+                        {task.title}
+                      </h4>
+                      <p className="text-[7px] text-[var(--success)] font-black uppercase">
+                        Mastered (+{task.points}P)
+                      </p>
+                    </div>
                   </div>
+                  <Lock size={10} className="text-[var(--muted)] opacity-50" />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '9px', fontWeight: '900', color: stageColors[task.stage], background: `${stageColors[task.stage]}12`, padding: '1px 6px', borderRadius: '3px', textTransform: 'uppercase' }}>
-                    {task.points}P
-                  </span>
-                  <ChevronRight size={10} strokeWidth={3} />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </AppShell>
   );
 }

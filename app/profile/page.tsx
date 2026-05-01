@@ -17,7 +17,7 @@ export default function ProfilePage() {
   const roleLabels: Record<string, string> = {
     student: 'Student',
     moduleAdmin: 'Module Admin',
-    superAdmin: 'Super Admin',
+    superadmin: 'Super Admin',
   };
 
   return (

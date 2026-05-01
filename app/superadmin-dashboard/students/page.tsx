@@ -19,6 +19,15 @@ export default function SuperAdminStudentsPage() {
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+  const [moduleFilter, setModuleFilter] = useState('');
+  const [modules, setModules] = useState<any[]>([]);
+  const [exportLoading, setExportLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(getApiUrl('/api/modules'))
+      .then(r => r.json())
+      .then(d => setModules(d.modules || []));
+  }, []);
 
   useEffect(() => {
     fetch(getApiUrl('/api/admin/users?role=student'))
@@ -106,6 +115,51 @@ export default function SuperAdminStudentsPage() {
               <option key={y} value={y.toString()}>{y === 1 ? 'I' : y === 2 ? 'II' : y === 3 ? 'III' : 'IV'}</option>
             ))}
           </select>
+          <select
+            value={moduleFilter}
+            onChange={(e) => setModuleFilter(e.target.value)}
+            style={{ padding: '4px 8px', fontSize: '11px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }}
+          >
+            <option value="">Module</option>
+            {modules.map(m => (
+              <option key={m._id} value={m._id}>{m.name}</option>
+            ))}
+          </select>
+          <button
+            disabled={exportLoading}
+            onClick={async () => {
+              setExportLoading(true);
+              try {
+                const query = new URLSearchParams({
+                  department: departmentFilter || 'ALL',
+                  year: yearFilter || 'ALL',
+                  module: moduleFilter || 'ALL'
+                }).toString();
+                const res = await fetch(`/api/export/students-dashboard?${query}`);
+                if (!res.ok) throw new Error('Export failed');
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Student_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              } catch (err) {
+                alert('Export failed');
+              } finally {
+                setExportLoading(false);
+              }
+            }}
+            style={{
+              padding: '4px 10px', background: 'var(--success)', color: 'white',
+              border: 'none', borderRadius: '6px', fontSize: '10px', fontWeight: '800', 
+              cursor: exportLoading ? 'not-allowed' : 'pointer',
+              textTransform: 'uppercase', opacity: exportLoading ? 0.7 : 1
+            }}
+          >
+            {exportLoading ? '...' : 'Export Excel'}
+          </button>
         </div>
       </div>
 

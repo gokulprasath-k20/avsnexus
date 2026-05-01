@@ -18,31 +18,53 @@ export async function runWithJDoodle(code: string, language: string, input: stri
 
   const l = LANG_MAP[language.toLowerCase()] || LANG_MAP.python;
 
-  const response = await axios.post(
-    'https://api.jdoodle.com/v1/execute',
-    {
-      clientId: process.env.JDOODLE_CLIENT_ID,
-      clientSecret: process.env.JDOODLE_CLIENT_SECRET,
-      script: code,
-      stdin: input,
-      language: l.lang,
-      versionIndex: l.version,
-    },
-    { headers: { 'Content-Type': 'application/json' } }
-  );
+  try {
+    const response = await axios.post(
+      'https://api.jdoodle.com/v1/execute',
+      {
+        clientId: process.env.JDOODLE_CLIENT_ID,
+        clientSecret: process.env.JDOODLE_CLIENT_SECRET,
+        script: code,
+        stdin: input,
+        language: l.lang,
+        versionIndex: l.version,
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
 
-  return response.data;
+    const data = response.data;
+    
+    // JDoodle often combines stdout and stderr in 'output'
+    // But we can check for common error patterns if needed.
+    // For now, let's treat 'output' as stdout and handle status codes.
+    
+    return {
+      stdout: data.output || '',
+      stderr: '',
+      compileError: '',
+      time: data.cpuTime || '0',
+      memory: data.memory || 0,
+      statusCode: data.statusCode
+    };
+  } catch (error: any) {
+    return {
+      stdout: '',
+      stderr: error.response?.data?.error || error.message,
+      compileError: '',
+      time: '0',
+      memory: 0,
+      statusCode: 500
+    };
+  }
 }
 
 export async function runWithLocal(code: string, language: string, input: string) {
   const tmpDir = os.tmpdir();
   const filename = `code_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-  
-  // For Java, the file must match the public class name. 
-  // Let's assume the user uses class "Main" for java tasks.
   const actualFilename = language === 'java' ? 'Main' : filename;
   let ext = '';
   let command = '';
+  let compileCommand = '';
 
   if (language === 'python') {
     ext = '.py';
@@ -52,19 +74,16 @@ export async function runWithLocal(code: string, language: string, input: string
     command = `node ${actualFilename}${ext}`;
   } else if (language === 'java') {
     ext = '.java';
-    command = `javac ${actualFilename}${ext} && java ${actualFilename}`;
+    compileCommand = `javac ${actualFilename}${ext}`;
+    command = `java ${actualFilename}`;
   } else if (language === 'cpp') {
     ext = '.cpp';
-    command = process.platform === 'win32' 
-      ? `g++ ${actualFilename}${ext} -o ${actualFilename}.exe && ${actualFilename}.exe` 
-      : `g++ ${actualFilename}${ext} -o ${actualFilename} && ./${actualFilename}`;
+    compileCommand = `g++ ${actualFilename}${ext} -o ${actualFilename}.out`;
+    command = process.platform === 'win32' ? `${actualFilename}.out` : `./${actualFilename}.out`;
   } else if (language === 'c') {
     ext = '.c';
-    command = process.platform === 'win32' 
-      ? `gcc ${actualFilename}${ext} -o ${actualFilename}.exe && ${actualFilename}.exe` 
-      : `gcc ${actualFilename}${ext} -o ${actualFilename} && ./${actualFilename}`;
-  } else {
-    throw new Error('Unsupported language for local execution');
+    compileCommand = `gcc ${actualFilename}${ext} -o ${actualFilename}.out`;
+    command = process.platform === 'win32' ? `${actualFilename}.out` : `./${actualFilename}.out`;
   }
 
   const filepath = path.join(tmpDir, `${actualFilename}${ext}`);
@@ -73,34 +92,51 @@ export async function runWithLocal(code: string, language: string, input: string
   await fs.writeFile(filepath, code);
   await fs.writeFile(inputpath, input || '');
 
-  let output = '';
+  let stdout = '';
+  let stderr = '';
+  let compileError = '';
   const startTime = process.hrtime();
+
   try {
-    const { stdout, stderr } = await execAsync(`${command} < ${filename}.in`, {
+    // Compile step
+    if (compileCommand) {
+      try {
+        await execAsync(compileCommand, { cwd: tmpDir, timeout: 5000 });
+      } catch (err: any) {
+        compileError = err.stderr || err.message;
+        throw new Error('Compilation Failed');
+      }
+    }
+
+    // Run step
+    const { stdout: resOut, stderr: resErr } = await execAsync(`${command} < ${filename}.in`, {
       cwd: tmpDir,
       timeout: 5000, 
     });
-    output = stdout + (stderr ? '\n' + stderr : '');
+    stdout = resOut;
+    stderr = resErr;
   } catch (error: any) {
-    output = (error.stdout || '') + (error.stderr ? '\n' + error.stderr : '') + (error.message && !error.stderr ? '\n' + error.message : '');
+    if (error.message !== 'Compilation Failed') {
+      stdout = error.stdout || '';
+      stderr = error.stderr || error.message;
+    }
   } finally {
     const endTime = process.hrtime(startTime);
     // Cleanup
     try {
       await fs.unlink(filepath).catch(() => {});
       await fs.unlink(inputpath).catch(() => {});
-      if (language === 'cpp' || language === 'c') {
-        const exeFile = process.platform === 'win32' ? `${actualFilename}.exe` : actualFilename;
-        await fs.unlink(path.join(tmpDir, exeFile)).catch(() => {});
-      }
-      if (language === 'java') {
-        await fs.unlink(path.join(tmpDir, `${actualFilename}.class`)).catch(() => {});
+      const outFiles = [`${actualFilename}.out`, `${actualFilename}.exe`, `${actualFilename}.class`];
+      for (const f of outFiles) {
+        await fs.unlink(path.join(tmpDir, f)).catch(() => {});
       }
     } catch (e) {}
     
     return {
-      output: output.trim(),
-      cpuTime: (endTime[0] + endTime[1] / 1e9).toFixed(2),
+      stdout: stdout.trim(),
+      stderr: stderr.trim(),
+      compileError: compileError.trim(),
+      time: (endTime[0] + endTime[1] / 1e9).toFixed(2),
       memory: 0,
     };
   }

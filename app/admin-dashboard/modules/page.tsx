@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiUrl } from '@/lib/api';
 
@@ -46,6 +46,10 @@ export default function AdminModulesPage() {
     fetch(getApiUrl('/api/modules'))
       .then((r) => r.json())
       .then((d) => setModules(d.modules || []))
+      .catch((err) => {
+        console.error('Fetch modules failed:', err);
+        toast.error('Failed to load modules');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -162,7 +166,41 @@ export default function AdminModulesPage() {
 
   return (
     <AppShell title={`${adminLabel} Dashboard`} subtitle={`Manage skill evaluation modules`}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '12px' }}>
+        <button
+          onClick={async () => {
+            if (!user?._id) return;
+            const btn = document.getElementById('export-btn');
+            if (btn) btn.innerText = 'Exporting...';
+            try {
+              const res = await fetch(`/api/export/admin/${user._id}`);
+              if (!res.ok) throw new Error('Export failed');
+              const blob = await res.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Admin_Report_${user.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            } catch (err) {
+              console.error(err);
+              toast.error('Failed to export report');
+            } finally {
+              if (btn) btn.innerText = 'Export My Report';
+            }
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '6px 12px', background: 'var(--surface)', color: 'var(--foreground)',
+            border: '1px solid var(--border)', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: 'pointer',
+            textTransform: 'uppercase', letterSpacing: '0.02em'
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="export-btn">Export My Report</span>
+        </button>
+
         <button
           onClick={handleNewModuleClick}
           style={{
@@ -332,7 +370,7 @@ export default function AdminModulesPage() {
             No modules found.
           </div>
         ) : (
-          modules.filter(m => user?.role === 'superAdmin' || m.type === user?.assignedModuleType).map((m) => (
+          modules.filter(m => user?.role === 'superadmin' || m.type === user?.assignedModuleType).map((m) => (
             <div
               key={m._id}
               style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '40px 1fr 100px 80px', gap: '10px', alignItems: 'center' }}
@@ -346,7 +384,12 @@ export default function AdminModulesPage() {
                 {m.type}
               </span>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <Link href={`/admin/modules/${m._id}`}>
+                <Link href={`/admin-dashboard/evaluate/${m._id}`}>
+                  <button title="Evaluate Submissions" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--primary)', cursor: 'pointer', color: 'white' }}>
+                    <CheckCircle2 size={12} />
+                  </button>
+                </Link>
+                <Link href={`/admin-dashboard/modules/${m._id}`}>
                   <button title="Edit" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface-hover)', cursor: 'pointer', color: 'var(--muted-fg)' }}>
                     <Edit2 size={12} />
                   </button>

@@ -4,8 +4,9 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 export interface JWTPayload {
   userId: string;
-  email: string;
-  role: 'student' | 'moduleAdmin' | 'superAdmin';
+  email?: string;
+  registerNumber?: string;
+  role: 'student' | 'moduleAdmin' | 'superadmin';
   name: string;
   assignedModuleType?: 'coding' | 'mcq' | 'file_upload';
 }

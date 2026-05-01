@@ -8,17 +8,30 @@ import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (email: string) => {
+    // Allows standard emails and internal ones like admin@avsec
+    return /^[^\s@]+@[^\s@]+$/.test(email);
+  };
+
+  const validateRegNo = (regNo: string) => {
+    return /^\d{12}$/.test(regNo);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return toast.error('Please fill in all fields');
+    if (!identifier || !password) return toast.error('Please fill in all fields');
+    
+    const isValid = validateRegNo(identifier) || validateEmail(identifier);
+    if (!isValid) return toast.error('Please enter a valid Register Number or Email');
+    
     setLoading(true);
     try {
-      await login(email, password);
+      await login(identifier, password);
       toast.success('Welcome back!');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Login failed');
@@ -26,6 +39,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  const isInvalid = (!validateRegNo(identifier) && !validateEmail(identifier)) || password.length < 6;
 
   return (
     <div
@@ -86,7 +101,7 @@ export default function LoginPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 style={{
                   display: 'block',
                   fontSize: '13px',
@@ -95,14 +110,14 @@ export default function LoginPage() {
                   marginBottom: '6px',
                 }}
               >
-                Email address
+                User ID or Email
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                id="identifier"
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="Register Number or Email"
                 required
                 style={{
                   width: '100%',
@@ -178,7 +193,7 @@ export default function LoginPage() {
             <button
               id="login-submit"
               type="submit"
-              disabled={loading}
+              disabled={loading || isInvalid}
               style={{
                 width: '100%',
                 padding: '10px',

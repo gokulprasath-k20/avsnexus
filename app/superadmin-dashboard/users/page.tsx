@@ -19,7 +19,7 @@ interface User {
 const roleBadge: Record<string, { bg: string; text: string; label: string }> = {
   student: { bg: 'rgba(37,99,235,0.1)', text: '#2563eb', label: 'Student' },
   moduleAdmin: { bg: 'rgba(124,58,237,0.1)', text: '#7c3aed', label: 'Module Admin' },
-  superAdmin: { bg: 'rgba(220,38,38,0.1)', text: '#dc2626', label: 'Super Admin' },
+  superadmin: { bg: 'rgba(220,38,38,0.1)', text: '#dc2626', label: 'Super Admin' },
 };
 
 export default function AdminUsersPage() {
@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
     <AppShell title="Users" subtitle="Manage students and admins">
       {/* Filter */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-        {[{ value: '', label: 'All' }, { value: 'student', label: 'Students' }, { value: 'moduleAdmin', label: 'Module Admins' }, { value: 'superAdmin', label: 'Super Admins' }].map((opt) => (
+        {[{ value: '', label: 'All' }, { value: 'student', label: 'Students' }, { value: 'moduleAdmin', label: 'Module Admins' }, { value: 'superadmin', label: 'Super Admins' }].map((opt) => (
           <button
             key={opt.value}
             onClick={() => setRoleFilter(opt.value)}

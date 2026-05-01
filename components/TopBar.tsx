@@ -19,21 +19,19 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
     <header
       className="px-1.5 md:px-3"
       style={{
-        height: 'calc(34px + var(--safe-top))',
-        borderBottom: '1px solid var(--border)',
+        height: 'calc(48px + var(--safe-top))',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'var(--background)',
+        background: 'transparent',
         paddingTop: 'var(--safe-top)',
-        position: 'sticky',
-        top: 0,
         zIndex: 30,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {/* Mobile Logo */}
-        <div className="md:hidden flex items-center justify-center w-6 h-6 bg-[var(--foreground)] rounded-md">
+        <div className="md:hidden flex items-center justify-center w-6 h-6 bg-[var(--primary)] rounded-md">
            <span className="text-[var(--background)] text-[10px] font-bold">AV</span>
         </div>
         
@@ -41,7 +39,7 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
           <h1
             className="truncate max-w-[120px] sm:max-w-none"
             style={{
-              fontSize: '10px',
+              fontSize: '12px',
               fontWeight: '900',
               color: 'var(--foreground)',
               lineHeight: 1,
@@ -52,10 +50,22 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
             {title}
           </h1>
           {subtitle && (
-            <p className="hidden sm:block" style={{ fontSize: '8px', color: 'var(--muted)', marginTop: '0px', fontWeight: '700', textTransform: 'uppercase' }}>
+            <p className="hidden sm:block" style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '2px', fontWeight: '700', textTransform: 'uppercase' }}>
               {subtitle}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+        <div className="relative w-full">
+          <input 
+            type="text" 
+            placeholder="Search your next task..." 
+            className="w-full bg-white/20 backdrop-blur-md border border-white/30 rounded-xl px-4 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted/60"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted/60 font-black">⌘K</div>
         </div>
       </div>
 

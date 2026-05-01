@@ -8,16 +8,24 @@ export type SubmissionStatus =
   | 'runtime_error'
   | 'time_limit_exceeded'
   | 'reviewed'
-  | 'needs_review';
+  | 'needs_review'
+  | 'pass'
+  | 'fail';
 
 export interface ISubmission extends Document {
   studentId: mongoose.Types.ObjectId;
   taskId: mongoose.Types.ObjectId;
   moduleId: mongoose.Types.ObjectId;
+  
   // Coding submission
   code?: string;
   language?: string;
-  judge0Token?: string;
+  input?: string;
+  output?: string;
+  error?: string;
+  compileError?: string;
+  executionTime?: string;
+  memory?: number;
   testResults?: Array<{
     testCase: number;
     status: string;
@@ -25,21 +33,43 @@ export interface ISubmission extends Document {
     memory?: number;
     output?: string;
     expected?: string;
+    isHidden: boolean;
   }>;
-  // MCQ submission
-  selectedAnswers?: number[];
-  mcqScore?: number;
+
+  // MCQ submission details
+  mcqAnswers: Array<{
+    question: string;
+    selectedAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+  }>;
+  totalQuestions: number;
+  attendedQuestions: number;
+  
   // File upload submission
   fileUrl?: string;
   filePublicId?: string;
   fileName?: string;
-  // Common
+
+  // Common Evaluation
   status: SubmissionStatus;
-  score: number;
-  feedback?: string; // admin feedback
+  marks: number; // Final marks assigned by admin or auto
+  remarks?: string; // Admin comments
+  score: number; // Redundant but kept for compatibility with existing code
+  feedback?: string; // Redundant but kept for compatibility
+  
   reviewedBy?: mongoose.Types.ObjectId;
   reviewedAt?: Date;
+  
+  // Anti-cheating & Timer
+  violationCount: number;
+  plagiarismScore: number;
+  flagged: boolean;
+  startedAt: Date;
   submittedAt: Date;
+  isAutoSubmitted: boolean;
+  reason?: string;
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,10 +79,16 @@ const SubmissionSchema = new Schema<ISubmission>(
     studentId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     taskId: { type: Schema.Types.ObjectId, ref: 'Task', required: true },
     moduleId: { type: Schema.Types.ObjectId, ref: 'Module', required: true },
+    
     // Coding
     code: { type: String },
     language: { type: String },
-    judge0Token: { type: String },
+    input: { type: String },
+    output: { type: String },
+    error: { type: String },
+    compileError: { type: String },
+    executionTime: { type: String },
+    memory: { type: Number },
     testResults: [
       {
         testCase: Number,
@@ -61,15 +97,27 @@ const SubmissionSchema = new Schema<ISubmission>(
         memory: Number,
         output: String,
         expected: String,
+        isHidden: Boolean,
       },
     ],
+    
     // MCQ
-    selectedAnswers: [{ type: Number }],
-    mcqScore: { type: Number },
+    mcqAnswers: [
+      {
+        question: String,
+        selectedAnswer: String,
+        correctAnswer: String,
+        isCorrect: Boolean,
+      }
+    ],
+    totalQuestions: { type: Number, default: 0 },
+    attendedQuestions: { type: Number, default: 0 },
+    
     // File upload
     fileUrl: { type: String },
     filePublicId: { type: String },
     fileName: { type: String },
+    
     // Common
     status: {
       type: String,
@@ -82,14 +130,27 @@ const SubmissionSchema = new Schema<ISubmission>(
         'time_limit_exceeded',
         'reviewed',
         'needs_review',
+        'pass',
+        'fail',
       ],
       default: 'pending',
     },
+    marks: { type: Number, default: 0 },
+    remarks: { type: String },
     score: { type: Number, default: 0 },
     feedback: { type: String },
+    
     reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     reviewedAt: { type: Date },
+    
+    violationCount: { type: Number, default: 0 },
+    plagiarismScore: { type: Number, default: 0 },
+    flagged: { type: Boolean, default: false },
+    
+    startedAt: { type: Date },
     submittedAt: { type: Date, default: Date.now },
+    isAutoSubmitted: { type: Boolean, default: false },
+    reason: { type: String },
   },
   { timestamps: true }
 );

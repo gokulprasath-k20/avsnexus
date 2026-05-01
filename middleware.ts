@@ -8,8 +8,9 @@ const PUBLIC_PATHS = [
   '/api/auth/logout',
 ];
 
-const STUDENT_PATHS = ['/dashboard', '/modules', '/leaderboard', '/profile'];
-const ADMIN_PATHS = ['/admin'];
+const STUDENT_PATHS = ['/student-dashboard', '/modules', '/leaderboard', '/profile'];
+const ADMIN_PATHS = ['/admin-dashboard'];
+const SUPERADMIN_PATHS = ['/superadmin-dashboard'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -51,13 +52,13 @@ export function middleware(request: NextRequest) {
     );
     const user = JSON.parse(jsonPayload);
 
-    // Strict role-based access
-    if (pathname.startsWith('/superadmin') && user.role !== 'superAdmin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    const role = user.role.toLowerCase();
+    if (pathname.startsWith('/superadmin-dashboard') && role !== 'superadmin') {
+      return NextResponse.redirect(new URL('/student-dashboard', request.url));
     }
-
-    if (pathname.startsWith('/admin') && user.role !== 'moduleAdmin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    
+    if (pathname.startsWith('/admin-dashboard') && !['admin', 'moduleadmin', 'moduleAdmin'].some(r => role === r.toLowerCase())) {
+      return NextResponse.redirect(new URL('/student-dashboard', request.url));
     }
 
     // Attach user info to headers for API routes

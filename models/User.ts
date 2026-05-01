@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   name: string;
-  email: string;
+  email?: string;
   password: string;
-  role: 'student' | 'moduleAdmin' | 'superAdmin';
+  role: 'student' | 'moduleAdmin' | 'superadmin' | 'admin';
   assignedModules: mongoose.Types.ObjectId[]; // for moduleAdmin
   assignedModuleType?: 'coding' | 'mcq' | 'file_upload';
   department?: string;
@@ -17,6 +17,10 @@ export interface IUser extends Document {
   updatedAt: Date;
   category?: 'elite' | 'non-elite';
   fcmTokens?: string[];
+  registerNumber?: string;
+  section?: string;
+  currentStreak: number;
+  lastCompletedDate?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -25,15 +29,15 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     email: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
+      sparse: true,
     },
     password: { type: String, required: true, minlength: 6 },
     role: {
       type: String,
-      enum: ['student', 'moduleAdmin', 'superAdmin'],
+      enum: ['student', 'admin', 'superadmin', 'moduleAdmin'],
       default: 'student',
     },
     assignedModules: [{ type: Schema.Types.ObjectId, ref: 'Module' }],
@@ -51,12 +55,21 @@ const UserSchema = new Schema<IUser>(
       max: 4,
     },
     totalPoints: { type: Number, default: 0 },
+    currentStreak: { type: Number, default: 0 },
+    lastCompletedDate: { type: Date },
     avatar: { type: String },
     category: {
       type: String,
       enum: ['elite', 'non-elite'],
       default: 'non-elite',
     },
+    registerNumber: { 
+      type: String, 
+      trim: true, 
+      unique: true,
+      sparse: true 
+    },
+    section: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
     fcmTokens: [{ type: String }],
   },

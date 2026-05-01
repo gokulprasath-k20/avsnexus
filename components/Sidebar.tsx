@@ -18,40 +18,62 @@ import {
   BarChart3,
   Layers,
   Terminal,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import NotificationBell from './NotificationBell';
+import toast from 'react-hot-toast';
 
 const studentNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/student-dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/modules', label: 'Modules', icon: BookOpen },
-  { href: '/playground', label: 'Playground', icon: Terminal },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
 const adminNav = [
-  { href: '/admin/modules', label: 'My Module', icon: Layers },
-  { href: '/admin/submissions', label: 'Submissions', icon: BookOpen },
+  { href: '/admin-dashboard/modules', label: 'My Module', icon: Layers },
+  { href: '/admin-dashboard/submissions', label: 'Submissions', icon: BookOpen },
 ];
 
 const superAdminNav = [
-  { href: '/superadmin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/superadmin/students', label: 'Students', icon: Users },
-  { href: '/superadmin/admins', label: 'Admins', icon: BookOpen },
-  { href: '/playground', label: 'Playground', icon: Terminal },
+  { href: '/superadmin-dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/superadmin-dashboard/students', label: 'Students', icon: Users },
+  { href: '/superadmin-dashboard/admins', label: 'Admins', icon: BookOpen },
 ];
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) {
+      toast('Installation available in your browser menu (Add to Home Screen)', { icon: '📱' });
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   if (!user) return null;
 
   const navItems =
-    user.role === 'superAdmin'
+    user.role === 'superadmin'
       ? superAdminNav
       : user.role === 'moduleAdmin'
       ? adminNav
@@ -68,18 +90,13 @@ export default function Sidebar() {
     <aside
       className="hidden md:flex"
       style={{
-        width: '160px',
-        minHeight: '100vh',
-        background: 'var(--surface)',
-        borderRight: '1px solid var(--border)',
+        width: '180px',
+        background: 'transparent',
         flexDirection: 'column',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        bottom: 0,
         zIndex: 40,
         paddingLeft: 'var(--safe-left)',
         paddingTop: 'var(--safe-top)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
       {/* Logo - Compact */}
@@ -89,13 +106,13 @@ export default function Sidebar() {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <Link href={user.role === 'student' ? '/dashboard' : user.role === 'superAdmin' ? '/superadmin' : '/admin/modules'}>
+        <Link href={user.role === 'student' ? '/student-dashboard' : user.role === 'superadmin' ? '/superadmin-dashboard' : '/admin-dashboard/modules'}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div
               style={{
                 width: '20px',
                 height: '20px',
-                background: 'var(--foreground)',
+                background: 'var(--primary)',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -126,7 +143,7 @@ export default function Sidebar() {
                 Nexus
               </div>
               <div style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: '900', textTransform: 'uppercase' }}>
-                {user.role === 'superAdmin' ? 'Super' : user.role === 'moduleAdmin' ? 'Admin' : 'Student'}
+                {user.role === 'superadmin' ? 'Super' : user.role === 'moduleAdmin' ? 'Admin' : 'Student'}
               </div>
             </div>
           </div>
@@ -146,16 +163,15 @@ export default function Sidebar() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    marginBottom: '1px',
-                    background: isActive ? 'var(--foreground)' : 'transparent',
-                    color: isActive ? 'var(--background)' : 'var(--muted-fg)',
+                    padding: '8px 12px',
+                    borderRadius: '12px',
+                    marginBottom: '4px',
+                    background: isActive ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--muted-fg)',
                     cursor: 'pointer',
-                    transition: 'all 0.1s ease',
-                    fontSize: '11px',
-                    fontWeight: '900',
-                    textTransform: 'uppercase',
+                    transition: 'all 0.2s ease',
+                    fontSize: '12px',
+                    fontWeight: '700',
                     letterSpacing: '-0.01em',
                   }}
                   onMouseEnter={(e) => {
@@ -190,6 +206,40 @@ export default function Sidebar() {
           gap: '1px',
         }}
       >
+        {/* Install App */}
+        <button
+          onClick={handleInstall}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            borderRadius: '12px',
+            background: 'var(--primary)',
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '11px',
+            fontWeight: '900',
+            width: '100%',
+            transition: 'all 0.2s ease',
+            textTransform: 'uppercase',
+            marginBottom: '8px',
+            boxShadow: '0 4px 12px rgba(168, 85, 247, 0.2)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(168, 85, 247, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(168, 85, 247, 0.2)';
+          }}
+        >
+          <Download size={14} strokeWidth={3} />
+          Install App
+        </button>
+
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}

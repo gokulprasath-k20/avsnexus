@@ -32,7 +32,7 @@ export default function SuperAdminDashboard() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
           {/* Students Card - Ultra Compact */}
-          <Link href="/superadmin/students" style={{ textDecoration: 'none' }}>
+          <Link href="/superadmin-dashboard/students" style={{ textDecoration: 'none' }}>
             <div
               style={{
                 background: 'var(--surface)',
@@ -61,7 +61,7 @@ export default function SuperAdminDashboard() {
           </Link>
 
           {/* Admins Card - Ultra Compact */}
-          <Link href="/superadmin/admins" style={{ textDecoration: 'none' }}>
+          <Link href="/superadmin-dashboard/admins" style={{ textDecoration: 'none' }}>
             <div
               style={{
                 background: 'var(--surface)',
@@ -84,6 +84,36 @@ export default function SuperAdminDashboard() {
                 <h2 style={{ fontSize: '8px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0px' }}>Admins</h2>
                 <p style={{ fontSize: '16px', fontWeight: '900', color: 'var(--foreground)', lineHeight: 1 }}>
                   {stats.totalAdmins}
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Students List Link Card - Resized to match others */}
+          <Link href="/superadmin-dashboard/students-list" style={{ textDecoration: 'none' }}>
+            <div
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.1s ease',
+                height: '100%',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; e.currentTarget.style.borderColor = 'var(--foreground)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+            >
+              <div style={{ width: '28px', height: '28px', borderRadius: '4px', background: 'var(--foreground)', color: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Users size={16} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '8px', fontVariationSettings: '"wght" 900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0px' }}>Students List</h2>
+                <p style={{ fontSize: '12px', fontWeight: '900', color: 'var(--foreground)', lineHeight: 1 }}>
+                  Full Registry
                 </p>
               </div>
             </div>

@@ -9,21 +9,29 @@ import toast from 'react-hot-toast';
 export default function SignupPage() {
   const { signup } = useAuth();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [registerNumber, setRegisterNumber] = useState('');
   const [password, setPassword] = useState('');
   const [department, setDepartment] = useState('CSE');
   const [year, setYear] = useState('1');
+  const [section, setSection] = useState('A');
   const [category, setCategory] = useState('non-elite');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password || !department || !year) return toast.error('Please fill in all fields');
+    if (!name || !password || !registerNumber || !department || !year || !section) {
+      return toast.error('Please fill in all required fields');
+    }
+    
+    if (!/^\d{12}$/.test(registerNumber)) {
+      return toast.error('Register number must be exactly 12 digits');
+    }
+
     if (password.length < 6) return toast.error('Password must be at least 6 characters');
     setLoading(true);
     try {
-      await signup(name, email, password, department, parseInt(year), category);
+      await signup(name, registerNumber, password, department, parseInt(year), category, section);
       toast.success('Account created! Welcome to AVS Nexus.');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Signup failed');
@@ -44,6 +52,8 @@ export default function SignupPage() {
     transition: 'border-color 0.15s',
   };
 
+  const isValid = name && /^\d{12}$/.test(registerNumber) && password.length >= 6;
+
   return (
     <div
       style={{
@@ -53,11 +63,11 @@ export default function SignupPage() {
         alignItems: 'flex-start',
         justifyContent: 'center',
         padding: '24px',
-        paddingTop: '8vh',
+        paddingTop: '6vh',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '400px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ width: '100%', maxWidth: '440px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div
             style={{
               width: '44px',
@@ -90,41 +100,50 @@ export default function SignupPage() {
           </p>
         </div>
 
+
+
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { label: 'Full name', id: 'name', type: 'text', value: name, set: setName, placeholder: 'John Doe' },
-              { label: 'Email address', id: 'email', type: 'email', value: email, set: setEmail, placeholder: 'you@example.com' },
-            ].map(({ label, id, type, value, set, placeholder }) => (
-              <div key={id}>
-                <label htmlFor={id} style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
-                  {label}
-                </label>
-                <input
-                  id={id}
-                  type={type}
-                  value={value}
-                  onChange={(e) => set(e.target.value)}
-                  placeholder={placeholder}
-                  required
-                  style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
-                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-                />
-              </div>
-            ))}
+            <div>
+              <label htmlFor="name" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
+                Full name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                required
+                style={inputStyle}
+                onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="registerNumber" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
+                Register Number
+              </label>
+              <input
+                id="registerNumber"
+                type="text"
+                value={registerNumber}
+                onChange={(e) => setRegisterNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                placeholder="12 digit register number"
+                required
+                style={inputStyle}
+                onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+              />
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label htmlFor="department" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
                   Department
                 </label>
-                <select
-                  id="department"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  style={inputStyle}
-                >
+                <select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} style={inputStyle}>
                   {['CSE', 'IT', 'ECE', 'EEE', 'BME', 'AIDS', 'MECH', 'CIVIL', 'OTHER'].map(dept => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
@@ -134,32 +153,34 @@ export default function SignupPage() {
                 <label htmlFor="year" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
                   Year of Study
                 </label>
-                <select
-                  id="year"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  style={inputStyle}
-                >
+                <select id="year" value={year} onChange={(e) => setYear(e.target.value)} style={inputStyle}>
                   {[1, 2, 3, 4].map(y => (
-                    <option key={y} value={y}>{y}{y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th'} Year</option>
+                    <option key={y} value={y.toString()}>{y}{y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th'} Year</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="category" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
-                Student Category
-              </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="non-elite">Non-Elite Student</option>
-                <option value="elite">Elite Student</option>
-              </select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label htmlFor="section" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
+                  Section
+                </label>
+                <select id="section" value={section} onChange={(e) => setSection(e.target.value)} style={inputStyle}>
+                  {['A', 'B', 'C', 'D', 'E', 'F'].map(sec => (
+                    <option key={sec} value={sec}>{sec}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="category" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--foreground)', marginBottom: '6px' }}>
+                  Category
+                </label>
+                <select id="category" value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
+                  <option value="non-elite">Non-Elite</option>
+                  <option value="elite">Elite</option>
+                </select>
+              </div>
             </div>
 
             <div>
@@ -191,7 +212,7 @@ export default function SignupPage() {
             <button
               id="signup-submit"
               type="submit"
-              disabled={loading}
+              disabled={loading || !isValid}
               style={{
                 width: '100%',
                 padding: '10px',

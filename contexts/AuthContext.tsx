@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 interface User {
   id: string;
   name: string;
-  email: string;
-  role: 'student' | 'moduleAdmin' | 'superAdmin';
+  registerNumber?: string;
+  email?: string;
+  role: 'student' | 'superadmin' | 'moduleAdmin';
   department?: string;
   year?: number;
+  section?: string;
   assignedModuleType?: 'coding' | 'mcq' | 'file_upload';
   totalPoints: number;
   avatar?: string;
@@ -19,8 +21,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, department: string, year: number, category: string) => Promise<void>;
+  login: (registerNumber: string, password: string) => Promise<void>;
+  signup: (name: string, registerNumber: string, password: string, department: string, year: number, category: string, section: string, role?: string, email?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -50,34 +52,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser().finally(() => setLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
     setUser(data.user);
-    if (data.user.role === 'student') {
-      router.push('/dashboard');
-    } else if (data.user.role === 'superAdmin') {
-      router.push('/superadmin');
+    const userRole = data.user.role.toLowerCase();
+    if (userRole === 'student') {
+      router.push('/student-dashboard');
+    } else if (userRole === 'superadmin') {
+      router.push('/superadmin-dashboard');
     } else {
-      router.push('/admin/modules');
+      router.push('/admin-dashboard/modules');
     }
   };
 
-  const signup = async (name: string, email: string, password: string, department: string, year: number, category: string) => {
+  const signup = async (
+    name: string, 
+    registerNumber: string, 
+    password: string, 
+    department: string, 
+    year: number, 
+    category: string, 
+    section: string,
+    role: string = 'student',
+    email?: string
+  ) => {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, department, year, category }),
+      body: JSON.stringify({ 
+        name, 
+        registerNumber, 
+        password, 
+        department, 
+        year, 
+        category, 
+        section,
+        role,
+        email
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Signup failed');
     setUser(data.user);
-    router.push('/dashboard');
+    
+    const userRole = data.user.role.toLowerCase();
+    if (userRole === 'student') {
+      router.push('/student-dashboard');
+    } else if (userRole === 'superadmin') {
+      router.push('/superadmin-dashboard');
+    } else {
+      router.push('/admin-dashboard/modules');
+    }
   };
 
   const logout = async () => {

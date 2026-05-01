@@ -124,7 +124,7 @@ export default function AdminModuleDetailPage() {
 
   return (
     <AppShell title={module.name} subtitle={`Manage tasks for this ${module.type} module`}>
-      <Link href="/admin/modules" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', marginBottom: '20px' }}>
+      <Link href="/admin-dashboard/modules" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', marginBottom: '20px' }}>
         <ArrowLeft size={14} /> Back to modules
       </Link>
 

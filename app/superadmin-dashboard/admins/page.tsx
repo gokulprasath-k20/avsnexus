@@ -33,8 +33,44 @@ export default function SuperAdminAdminsPage() {
     }
   };
 
+  const [exportLoading, setExportLoading] = useState(false);
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const res = await fetch('/api/export/admin-panel');
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Admin_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      alert('Export failed');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <AppShell title="Admins" subtitle="Manage administrators">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+        <button
+          disabled={exportLoading}
+          onClick={handleExport}
+          style={{
+            padding: '6px 12px', background: 'var(--foreground)', color: 'var(--background)',
+            border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: '700', cursor: exportLoading ? 'not-allowed' : 'pointer',
+            textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', opacity: exportLoading ? 0.7 : 1
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {exportLoading ? 'Exporting...' : 'Export Task-wise Report'}
+        </button>
+      </div>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
         <div style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 100px 20px', gap: '8px', alignItems: 'center', background: 'var(--surface-hover)' }}>
           {['Admin', 'Module', ''].map((h) => (
@@ -52,7 +88,7 @@ export default function SuperAdminAdminsPage() {
           admins.map((admin) => {
             const initials = admin.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
             return (
-              <Link key={admin._id} href={`/superadmin/admins/${admin._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link key={admin._id} href={`/superadmin-dashboard/admins/${admin._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div
                   style={{
                     padding: '5px 10px',

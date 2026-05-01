@@ -14,22 +14,22 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 const studentNav = [
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/student-dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/modules', label: 'Modules', icon: BookOpen },
   { href: '/leaderboard', label: 'Ranks', icon: Trophy },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
 const adminNav = [
-  { href: '/admin/modules', label: 'Modules', icon: Layers },
-  { href: '/admin/submissions', label: 'Grading', icon: BookOpen },
+  { href: '/admin-dashboard/modules', label: 'Modules', icon: Layers },
+  { href: '/admin-dashboard/submissions', label: 'Grading', icon: BookOpen },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
 const superAdminNav = [
-  { href: '/superadmin', label: 'Home', icon: LayoutDashboard },
-  { href: '/superadmin/students', label: 'Students', icon: Users },
-  { href: '/superadmin/admins', label: 'Admins', icon: BookOpen },
+  { href: '/superadmin-dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/superadmin-dashboard/students', label: 'Students', icon: Users },
+  { href: '/superadmin-dashboard/admins', label: 'Admins', icon: BookOpen },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -40,9 +40,9 @@ export default function BottomNav() {
   if (!user) return null;
 
   const navItems =
-    user.role === 'superAdmin'
+    user.role === 'superadmin'
       ? superAdminNav
-      : user.role === 'moduleAdmin'
+      : user.role === 'admin' || user.role === 'moduleAdmin'
       ? adminNav
       : studentNav;
 
@@ -59,7 +59,7 @@ export default function BottomNav() {
     >
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+        const isActive = pathname === item.href || (item.href !== '/student-dashboard' && pathname.startsWith(item.href));
         
         return (
           <Link
