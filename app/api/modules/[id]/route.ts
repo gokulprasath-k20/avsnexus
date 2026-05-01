@@ -3,7 +3,7 @@ import connectDB from '@/lib/db';
 import Module from '@/models/Module';
 import { requireAuth } from '@/lib/auth';
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 // GET /api/modules/[id]
 export const GET = requireAuth(async (request: NextRequest, user) => {

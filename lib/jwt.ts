@@ -6,7 +6,7 @@ export interface JWTPayload {
   userId: string;
   email?: string;
   registerNumber?: string;
-  role: 'student' | 'moduleAdmin' | 'superadmin';
+  role: 'student' | 'moduleAdmin' | 'superadmin' | 'admin';
   name: string;
   assignedModuleType?: 'coding' | 'mcq' | 'file_upload';
 }

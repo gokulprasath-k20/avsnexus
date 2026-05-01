@@ -8,7 +8,7 @@ interface User {
   name: string;
   registerNumber?: string;
   email?: string;
-  role: 'student' | 'superadmin' | 'moduleAdmin';
+  role: 'student' | 'superadmin' | 'moduleAdmin' | 'admin';
   department?: string;
   year?: number;
   section?: string;
