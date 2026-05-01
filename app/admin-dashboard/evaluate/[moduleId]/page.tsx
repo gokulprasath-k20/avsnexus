@@ -57,6 +57,8 @@ interface Submission {
   totalQuestions: number;
   attendedQuestions: number;
   reason?: string;
+  compileError?: string;
+  statusDesc?: string;
 }
 
 export default function EvaluationPage() {
