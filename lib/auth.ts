@@ -16,7 +16,7 @@ export function requireAuth(
   handler: (req: NextRequest, user: JWTPayload) => Promise<NextResponse>,
   allowedRoles?: string[]
 ) {
-  return async (request: NextRequest) => {
+  return async (request: NextRequest, context?: any) => {
     try {
       const token = getTokenFromRequest(request);
       if (!token) {
