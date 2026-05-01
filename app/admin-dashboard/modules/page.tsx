@@ -169,11 +169,11 @@ export default function AdminModulesPage() {
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '12px' }}>
         <button
           onClick={async () => {
-            if (!user?._id) return;
+            if (!user?.id) return;
             const btn = document.getElementById('export-btn');
             if (btn) btn.innerText = 'Exporting...';
             try {
-              const res = await fetch(`/api/export/admin/${user._id}`);
+              const res = await fetch(`/api/export/admin/${user.id}`);
               if (!res.ok) throw new Error('Export failed');
               const blob = await res.blob();
               const url = window.URL.createObjectURL(blob);
