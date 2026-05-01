@@ -28,6 +28,16 @@ interface Student {
   department?: string;
 }
 
+interface TestResult {
+  testCase: string;
+  status: string;
+  output?: string;
+  expected?: string;
+  isHidden?: boolean;
+  time: number;
+  memory: number;
+}
+
 interface Submission {
   _id: string;
   studentId: Student;
@@ -59,6 +69,7 @@ interface Submission {
   reason?: string;
   compileError?: string;
   statusDesc?: string;
+  testResults?: TestResult[];
 }
 
 export default function EvaluationPage() {
