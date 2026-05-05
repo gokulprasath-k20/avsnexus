@@ -18,9 +18,12 @@ export const GET = requireAuth(async (request: NextRequest, user) => {
 
     const modules = await Module.find(query)
       .populate('assignedAdmins', 'name email')
-      .sort({ order: 1, createdAt: -1 });
+      .sort({ order: 1, createdAt: -1 })
+      .lean();
 
-    return NextResponse.json({ modules });
+    return NextResponse.json({ modules }, {
+      headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' }
+    });
   } catch (error) {
     console.error('Get modules error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

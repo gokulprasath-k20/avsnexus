@@ -24,9 +24,12 @@ export const GET = requireAuth(async (request: NextRequest) => {
     const tasks = await Task.find(query)
       .select('-testCases') // hide test cases from students
       .populate('moduleId', 'name')
-      .sort({ stage: 1, order: 1 });
+      .sort({ stage: 1, order: 1 })
+      .lean();
 
-    return NextResponse.json({ tasks });
+    return NextResponse.json({ tasks }, {
+      headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' }
+    });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
