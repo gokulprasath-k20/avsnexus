@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "mobile:build": "powershell -Command \"$env:BUILD_MODE='export'; Rename-Item app/api api_routes; try { npm run build } finally { Rename-Item api_routes app/api }; npx cap sync\"",
+    "mobile:build": "powershell -Command \"$env:BUILD_MODE='export'; $env:NEXT_PUBLIC_API_URL='https://avsnexus.vercel.app'; Move-Item app\\api ..\\api_temp; try { npm run build; npx cap sync android } finally { if (Test-Path ..\\api_temp) { Move-Item ..\\api_temp app\\api } }\"",
     "start": "next start"
   },
   "dependencies": {
