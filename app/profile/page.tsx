@@ -4,7 +4,7 @@ import React from 'react';
 import AppShell from '@/components/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { User, Mail, Shield, Star, Sun, Moon } from 'lucide-react';
+import { User, Mail, Shield, Star, Sun, Moon, Bell } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -113,6 +113,66 @@ export default function ProfilePage() {
               </div>
               <p style={{ fontSize: '10px', color: theme === 'dark' ? 'var(--background)' : 'var(--muted)', opacity: 0.8 }}>Better for low light</p>
             </div>
+          </div>
+        </div>
+
+        {/* Notification Preferences */}
+        <div style={{ marginTop: '24px' }}>
+          <h3 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', paddingLeft: '4px' }}>
+            Notifications
+          </h3>
+          <div 
+            style={{ 
+              background: 'var(--surface)', 
+              border: '1px solid var(--border)', 
+              borderRadius: '12px', 
+              padding: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px'
+            }}
+          >
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary-fade)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Bell size={18} style={{ margin: 'auto' }} />
+              </div>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--foreground)' }}>Push Notifications</p>
+                <p style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px' }}>
+                  {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' 
+                    ? 'Successfully enabled on this device' 
+                    : 'Get real-time updates and reminders'}
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!('Notification' in window)) return;
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                  window.location.reload(); // Refresh to sync token
+                } else {
+                  alert("Notifications are disabled in your browser settings. Please enable them to receive updates.");
+                }
+              }}
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '10px', 
+                fontSize: '11px', 
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                background: typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'var(--muted-fade)' : 'var(--primary)',
+                color: typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'var(--muted)' : 'white',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'Enabled' : 'Enable'}
+            </button>
           </div>
         </div>
       </div>

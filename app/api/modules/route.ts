@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Module from '@/models/Module';
+import User from '@/models/User';
 import { requireAuth } from '@/lib/auth';
+import { messaging } from '@/lib/firebaseAdmin';
 
 // GET /api/modules - list all active modules
 export const GET = requireAuth(async (request: NextRequest, user) => {
@@ -62,6 +64,30 @@ export const POST = requireAuth(
         createdBy: user.userId,
         assignedAdmins: [user.userId], // Auto-assign the creator
       });
+
+      // Send Push Notification to all students
+      if (messaging) {
+        try {
+          const students = await User.find({ role: 'student', isActive: true, fcmTokens: { $exists: true, $not: { $size: 0 } } });
+          const allTokens = students.flatMap(s => s.fcmTokens || []);
+          if (allTokens.length > 0) {
+            const uniqueTokens = [...new Set(allTokens)].slice(0, 500);
+            await messaging.sendEachForMulticast({
+              notification: {
+                title: 'New Learning Module! 📚',
+                body: `Explore the new "${module.name}" module now and start earning points.`,
+              },
+              data: {
+                url: '/student-dashboard',
+                moduleId: module._id.toString()
+              },
+              tokens: uniqueTokens
+            });
+          }
+        } catch (pushErr) {
+          console.error('Failed to send module notification:', pushErr);
+        }
+      }
 
       return NextResponse.json({ module }, { status: 201 });
     } catch (error) {

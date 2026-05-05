@@ -52,6 +52,7 @@ export const POST = requireAuth(
       }
 
       const task = await Task.create({ ...body, createdBy: user.userId });
+      const module = await Module.findById(moduleId).select('name');
 
       // Send Push Notifications to Students
       if (messaging) {
@@ -60,13 +61,12 @@ export const POST = requireAuth(
           const allTokens = students.flatMap(s => s.fcmTokens || []);
 
           if (allTokens.length > 0) {
-            // Firebase limits multicast to 500 tokens per call
             const uniqueTokens = [...new Set(allTokens)].slice(0, 500); 
             
             const message = {
               notification: {
                 title: 'New Task Assigned 🚀',
-                body: `A new ${task.type === 'coding' ? 'coding challenge' : 'task'} "${task.title}" has been added. Check now!`,
+                body: `A new task "${task.title}" has been added in ${module?.name || 'your module'}.`,
               },
               data: {
                 url: `/tasks/${task._id}`,

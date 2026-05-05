@@ -9,7 +9,8 @@ const firebaseConfig = {
   projectId: "avsnexus-c54b1",
   storageBucket: "avsnexus-c54b1.firebasestorage.app",
   messagingSenderId: "637180914163",
-  appId: "1:637180914163:web:447021bba468bcae444a86"
+  appId: "1:637180914163:web:447021bba468bcae444a86",
+  measurementId: "G-DJCZWRLH7C"
 };
 
 try {

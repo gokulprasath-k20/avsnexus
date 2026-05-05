@@ -6,6 +6,7 @@ import User from '@/models/User';
 import Task from '@/models/Task';
 import { requireAuth } from '@/lib/auth';
 import { executeCode } from '@/lib/executor';
+import { messaging } from '@/lib/firebaseAdmin';
 
 // Simple Dice's Coefficient for string similarity
 function calculateSimilarity(str1: string, str2: string) {
@@ -216,6 +217,29 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
         remarks: submissionData.remarks
       });
 
+      // Send Push Notification for Evaluation
+      if (messaging) {
+        try {
+          const student = await User.findById(user.userId).select('fcmTokens');
+          if (student && student.fcmTokens && student.fcmTokens.length > 0) {
+            const statusLabel = allPassed ? 'Passed 🎉' : (finalStatus === 'wrong_answer' ? 'Failed ❌' : 'Result Updated');
+            await messaging.send({
+              notification: {
+                title: 'Evaluation Completed',
+                body: `Your submission for "${task.title}" has been evaluated. Status: ${statusLabel}`,
+              },
+              data: {
+                url: `/tasks/${task._id}`,
+                submissionId: submission._id.toString()
+              },
+              token: student.fcmTokens[student.fcmTokens.length - 1] // Send to latest token
+            });
+          }
+        } catch (pushErr) {
+          console.error('Failed to send evaluation notification:', pushErr);
+        }
+      }
+
       return NextResponse.json({
         submission: { ...submission.toObject(), status: finalStatus, score: finalScore, marks: finalScore, testResults },
       }, { status: 201 });
@@ -253,6 +277,29 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
 
       if (finalScore > 0) {
         await updateScore(user.userId, task.moduleId.toString(), task.stage, finalScore);
+      }
+
+      // Send Push Notification for MCQ Evaluation
+      if (messaging) {
+        try {
+          const student = await User.findById(user.userId).select('fcmTokens');
+          if (student && student.fcmTokens && student.fcmTokens.length > 0) {
+            const passed = submissionData.status === 'pass';
+            await messaging.send({
+              notification: {
+                title: 'Quiz Result 📝',
+                body: `You scored ${finalScore} points in "${task.title}". ${passed ? 'Great job!' : 'Keep practicing!'}`,
+              },
+              data: {
+                url: `/tasks/${task._id}`,
+                submissionId: submission._id.toString()
+              },
+              token: student.fcmTokens[student.fcmTokens.length - 1]
+            });
+          }
+        } catch (pushErr) {
+          console.error('Failed to send MCQ notification:', pushErr);
+        }
       }
 
       return NextResponse.json({ submission }, { status: 201 });

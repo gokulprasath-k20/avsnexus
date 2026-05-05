@@ -12,7 +12,7 @@ const STUDENT_PATHS = ['/student-dashboard', '/modules', '/leaderboard', '/profi
 const ADMIN_PATHS = ['/admin-dashboard'];
 const SUPERADMIN_PATHS = ['/superadmin-dashboard'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public paths
