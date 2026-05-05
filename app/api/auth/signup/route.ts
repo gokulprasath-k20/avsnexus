@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { signToken } from '@/lib/jwt';
+import { createClient } from '@supabase/supabase-js';
+
+// Admin Supabase client — can confirm emails without user interaction
+function getAdminSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +31,15 @@ export async function POST(request: NextRequest) {
 
     if (!supabaseId) {
       return NextResponse.json({ error: 'Supabase ID is required' }, { status: 400 });
+    }
+
+    // Auto-confirm the Supabase user's email using service role key
+    // so users can log in immediately without email verification
+    try {
+      const adminSupabase = getAdminSupabase();
+      await adminSupabase.auth.admin.updateUserById(supabaseId, { email_confirm: true });
+    } catch (confirmError) {
+      console.warn('Could not auto-confirm email (non-fatal):', confirmError);
     }
 
     // Check if user already exists in MongoDB
