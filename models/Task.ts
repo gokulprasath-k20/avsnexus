@@ -24,6 +24,7 @@ export interface ITask extends Document {
   order: number;
   points: number;
   // Coding-specific
+  allowedLanguages?: string[]; // ['c', 'cpp', 'python', 'java', 'javascript']
   starterCode?: Record<string, string>; // { python: '...', javascript: '...' }
   testCases?: ITestCase[];
   timeLimit?: number; // seconds for Judge0
@@ -71,6 +72,7 @@ const TaskSchema = new Schema<ITask>(
     order: { type: Number, default: 0 },
     points: { type: Number, required: true, default: 10 },
     // Coding
+    allowedLanguages: [{ type: String }],
     starterCode: { type: Map, of: String },
     testCases: [TestCaseSchema],
     timeLimit: { type: Number, default: 5 },

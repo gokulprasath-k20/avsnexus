@@ -7,6 +7,57 @@ import axios from 'axios';
 
 const execAsync = promisify(exec);
 
+const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com';
+const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+
+const JUDGE0_LANG_MAP: Record<string, number> = {
+  c: 50, // C (GCC 9.2.0)
+  cpp: 54, // C++ (GCC 9.2.0)
+  python: 71, // Python (3.8.1)
+  java: 62, // Java (OpenJDK 13.0.1)
+  javascript: 63, // JavaScript (Node.js 12.14.0)
+};
+
+export async function runWithJudge0(code: string, language: string, input: string) {
+  const languageId = JUDGE0_LANG_MAP[language.toLowerCase()];
+  if (!languageId) throw new Error(`Unsupported language: ${language}`);
+
+  try {
+    // Create submission
+    const response = await axios.post(
+      `${JUDGE0_API_URL}/submissions?base64_encoded=false&wait=true`,
+      {
+        source_code: code,
+        language_id: languageId,
+        stdin: input,
+      },
+      {
+        headers: {
+          'content-type': 'application/json',
+          'X-RapidAPI-Key': JUDGE0_API_KEY,
+          'X-RapidAPI-Host': new URL(JUDGE0_API_URL).hostname,
+        },
+      }
+    );
+
+    const data = response.data;
+    
+    return {
+      stdout: data.stdout || '',
+      stderr: data.stderr || '',
+      compileError: data.compile_output || '',
+      time: data.time || '0',
+      memory: data.memory || 0,
+      statusCode: data.status?.id || 200,
+      statusDescription: data.status?.description || 'Success'
+    };
+  } catch (error: any) {
+    console.error('Judge0 Error:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Code execution engine error');
+  }
+}
+
+
 export async function runWithJDoodle(code: string, language: string, input: string) {
   const LANG_MAP: Record<string, { lang: string; version: string }> = {
     python: { lang: 'python3', version: '4' },
@@ -34,14 +85,28 @@ export async function runWithJDoodle(code: string, language: string, input: stri
 
     const data = response.data;
     
-    // JDoodle often combines stdout and stderr in 'output'
-    // But we can check for common error patterns if needed.
-    // For now, let's treat 'output' as stdout and handle status codes.
+    let stdout = data.output || '';
+    let stderr = '';
+    let compileError = '';
+
+    // JDoodle combines everything in 'output'.
+    // Let's try to detect if it looks like a compilation or runtime error.
+    const lowerOutput = stdout.toLowerCase();
+    if (data.statusCode !== 200 || lowerOutput.includes('error:') || lowerOutput.includes('exception in thread')) {
+      // If it looks like a compilation error (common in C/C++/Java)
+      if (lowerOutput.includes('error:') && (language === 'c' || language === 'cpp' || language === 'java')) {
+        compileError = stdout;
+        stdout = '';
+      } else {
+        stderr = stdout;
+        stdout = '';
+      }
+    }
     
     return {
-      stdout: data.output || '',
-      stderr: '',
-      compileError: '',
+      stdout,
+      stderr,
+      compileError,
       time: data.cpuTime || '0',
       memory: data.memory || 0,
       statusCode: data.statusCode
@@ -148,6 +213,8 @@ export async function executeCode(code: string, language: string, input: string)
   
   if (engine === 'local') {
     return runWithLocal(code, language, input);
+  } else if (engine === 'judge0') {
+    return runWithJudge0(code, language, input);
   } else {
     return runWithJDoodle(code, language, input);
   }

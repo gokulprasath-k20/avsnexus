@@ -92,7 +92,8 @@ export default function TaskClient() {
         const subData = await subRes.json();
 
         if (taskRes.ok) {
-          setTask(taskData.task);
+          const t = taskData.task;
+          setTask(t);
 
           // Check if already completed
           const isDone = (subData.submissions || []).some((s: any) => 
@@ -105,12 +106,10 @@ export default function TaskClient() {
             return;
           }
 
-          if (taskData.task?.type === 'coding' && taskData.task?.starterCode) {
-            const langs = Object.keys(taskData.task.starterCode);
-            if (langs.length > 0) {
-              setLanguage(langs[0]);
-              setCode(taskData.task.starterCode[langs[0]] || '');
-            }
+          // Redirect coding tasks to the specialized playground
+          if (t.type === 'coding') {
+            router.replace(`/playground/${id}`);
+            return;
           }
           
           // Always record start time for timed tests

@@ -217,6 +217,10 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
         remarks: submissionData.remarks
       });
 
+      if (finalScore > 0) {
+        await updateScore(user.userId, task.moduleId.toString(), task.stage, finalScore);
+      }
+
       // Send Push Notification for Evaluation
       if (messaging) {
         try {
