@@ -21,6 +21,7 @@ export interface IUser extends Document {
   section?: string;
   currentStreak: number;
   lastCompletedDate?: Date;
+  supabaseId?: string; // Link to Supabase Auth
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -35,6 +36,7 @@ const UserSchema = new Schema<IUser>(
       sparse: true,
     },
     password: { type: String, required: true, minlength: 6 },
+    supabaseId: { type: String, unique: true, sparse: true },
     role: {
       type: String,
       enum: ['student', 'admin', 'superadmin', 'moduleAdmin'],

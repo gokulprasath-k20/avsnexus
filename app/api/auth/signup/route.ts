@@ -7,29 +7,46 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { role = 'student' } = body;
+    const { 
+      name, 
+      registerNumber, 
+      supabaseId,
+      department, 
+      year, 
+      category, 
+      section,
+      email 
+    } = body;
+    const role = body.role || 'student';
 
-    if (role !== 'student') {
-      return NextResponse.json({ error: 'Only student accounts can be created via signup' }, { status: 403 });
+    if (!supabaseId) {
+      return NextResponse.json({ error: 'Supabase ID is required' }, { status: 400 });
     }
 
-    const { name, registerNumber, password, department, year, category, section } = body;
+    // Check if user already exists in MongoDB
+    const existingUser = await User.findOne({ 
+      $or: [{ supabaseId }, { registerNumber }] 
+    });
 
-    if (!name || !registerNumber || !password || !department || !year || !category || !section) {
-      return NextResponse.json({ error: 'All student fields are required' }, { status: 400 });
-    }
-
-    if (!/^\d{12}$/.test(registerNumber)) {
-      return NextResponse.json({ error: 'Register number must be exactly 12 digits' }, { status: 400 });
-    }
-
-    const existingUser = await User.findOne({ registerNumber });
     if (existingUser) {
-      return NextResponse.json({ error: 'Register number already in use' }, { status: 409 });
+      if (!existingUser.supabaseId) {
+        existingUser.supabaseId = supabaseId;
+        await existingUser.save();
+      }
+      return createAuthResponse(existingUser);
     }
 
     const user = await User.create({ 
-      name, registerNumber, password, role: 'student', department, year, category, section 
+      name, 
+      registerNumber, 
+      supabaseId,
+      role, 
+      department, 
+      year, 
+      category, 
+      section,
+      email,
+      password: 'SUPABASE_AUTH_MANAGED' 
     });
 
     return createAuthResponse(user);

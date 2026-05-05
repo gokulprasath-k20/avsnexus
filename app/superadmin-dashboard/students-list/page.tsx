@@ -125,7 +125,7 @@ export default function StudentsListPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ position: 'sticky', top: 0, background: 'var(--surface-hover)', zIndex: 10, borderBottom: '1px solid var(--border)' }}>
               <tr>
-                {['S.No', 'Student Name', 'Reg Number', 'Dept', 'Year', 'Sec'].map((h) => (
+                {['S.No', 'Student Name', 'Reg Number', 'Dept', 'Year', 'Sec', 'Actions'].map((h) => (
                   <th key={h} style={{ padding: '12px 16px', fontSize: '10px', fontWeight: '900', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                 ))}
               </tr>
@@ -133,13 +133,13 @@ export default function StudentsListPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '40px', textAlign: 'center' }}>
+                  <td colSpan={7} style={{ padding: '40px', textAlign: 'center' }}>
                     <div className="spinner" style={{ width: '24px', height: '24px', margin: '0 auto' }} />
                   </td>
                 </tr>
               ) : students.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>No students found matching filters.</td>
+                  <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>No students found matching filters.</td>
                 </tr>
               ) : (
                 students.map((student, idx) => (
@@ -153,6 +153,43 @@ export default function StudentsListPage() {
                     <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: '700' }}>{student.department || '-'}</td>
                     <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: '700' }}>{student.year ? (student.year === 1 ? 'I' : student.year === 2 ? 'II' : student.year === 3 ? 'III' : 'IV') : '-'}</td>
                     <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: '800' }}>{student.section || '-'}</td>
+                    <td style={{ padding: '10px 16px' }}>
+                      <button
+                        onClick={() => {
+                          const newPass = prompt(`Enter new password for ${student.name}:`, 'avsstudent123');
+                          if (newPass && newPass.length >= 6) {
+                            const handleReset = async () => {
+                              try {
+                                const res = await fetch(`/api/admin/users/${student._id}/reset-password`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ newPassword: newPass }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error);
+                                toast.success('Password updated!');
+                              } catch (err: any) {
+                                toast.error(err.message);
+                              }
+                            };
+                            handleReset();
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '10px',
+                          fontWeight: '800',
+                          color: 'var(--foreground)',
+                          background: 'var(--background)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        Reset Password
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

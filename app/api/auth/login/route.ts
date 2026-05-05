@@ -6,37 +6,28 @@ import { signToken } from '@/lib/jwt';
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { identifier, password } = await request.json();
-
-    if (!identifier || !password) {
-      return NextResponse.json(
-        { error: 'Email/Register number and password are required' },
-        { status: 400 }
-      );
+    const { supabaseId, email } = await request.json();
+    if (!supabaseId) {
+      return NextResponse.json({ error: 'Supabase ID is required' }, { status: 400 });
     }
 
     const query = {
       $or: [
-        { registerNumber: identifier },
-        { email: identifier.toLowerCase() }
+        { supabaseId },
+        { email: email?.toLowerCase() },
+        { registerNumber: email?.split('@')[0] }
       ],
       isActive: true
     };
 
     const user = await User.findOne(query);
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'User not found in system' }, { status: 404 });
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+    if (!user.supabaseId) {
+      user.supabaseId = supabaseId;
+      await user.save();
     }
 
     const token = signToken({

@@ -16,7 +16,15 @@ const initializeAdmin = () => {
       return null;
     }
 
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    let serviceAccount = JSON.parse(serviceAccountJson);
+    if (typeof serviceAccount === 'string') {
+      serviceAccount = JSON.parse(serviceAccount);
+    }
+
+    if (serviceAccount.private_key) {
+      // The most reliable way to fix the key from env vars
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
 
     return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)

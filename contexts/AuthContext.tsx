@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabaseBrowser';
+import toast from 'react-hot-toast';
 
 interface User {
   id: string;
@@ -23,7 +25,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (registerNumber: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   signup: (name: string, registerNumber: string, password: string, department: string, year: number, category: string, section: string, role?: string, email?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -35,35 +37,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const supabase = createClient();
 
-  const refreshUser = async () => {
+  const syncUserWithBackend = async (supabaseUser: any) => {
     try {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
-      } else {
-        setUser(null);
+        return data.user;
       }
-    } catch {
-      setUser(null);
+      return null;
+    } catch (error) {
+      console.error('Error syncing user:', error);
+      return null;
     }
   };
 
   useEffect(() => {
-    refreshUser().finally(() => setLoading(false));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        await syncUserWithBackend(session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
+  const refreshUser = async () => {
+    await syncUserWithBackend(null);
+  };
+
   const login = async (identifier: string, password: string) => {
+    let email = identifier;
+    if (!identifier.includes('@')) {
+      email = `${identifier}@avs.com`;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw new Error(error.message);
+
+    // Sync with backend to get MongoDB user data and set old token cookie
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
+      body: JSON.stringify({ supabaseId: data.user.id, email }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Login failed');
-    setUser(data.user);
-    const userRole = data.user.role.toLowerCase();
+
+    const backendData = await res.json();
+    if (!res.ok) throw new Error(backendData.error || 'Backend sync failed');
+
+    setUser(backendData.user);
+    
+    const userRole = backendData.user.role.toLowerCase();
     if (userRole === 'student') {
       router.push('/student-dashboard');
     } else if (userRole === 'superadmin') {
@@ -84,26 +119,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role: string = 'student',
     email?: string
   ) => {
+    // Determine internal email
+    const internalEmail = email || `${registerNumber}@avs.com`;
+
+    const { data, error } = await supabase.auth.signUp({
+      email: internalEmail,
+      password,
+      options: {
+        data: {
+          name,
+          registerNumber,
+          role
+        }
+      }
+    });
+
+    if (error) throw new Error(error.message);
+    if (!data.user) throw new Error('Signup failed');
+
+    // Create user in MongoDB
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
+        supabaseId: data.user.id,
         name, 
         registerNumber, 
-        password, 
         department, 
         year, 
         category, 
         section,
         role,
-        email
+        email: internalEmail
       }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Signup failed');
-    setUser(data.user);
+
+    const backendData = await res.json();
+    if (!res.ok) throw new Error(backendData.error || 'MongoDB sync failed');
+
+    setUser(backendData.user);
     
-    const userRole = data.user.role.toLowerCase();
+    const userRole = backendData.user.role.toLowerCase();
     if (userRole === 'student') {
       router.push('/student-dashboard');
     } else if (userRole === 'superadmin') {
@@ -114,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    await supabase.auth.signOut();
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
     router.push('/login');

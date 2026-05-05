@@ -176,7 +176,7 @@ export default function ModuleAdminClient() {
       {/* Task create form */}
       {showForm && (
         <div className="glass-panel" style={{ border: '1px solid var(--border)', borderRadius: '20px', padding: '30px', marginBottom: '30px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '900', marginBottom: '24px', textTransform: 'uppercase', tracking: 'tight' }}>Create {module.type} Task</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '900', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>Create {module.type} Task</h3>
           <form onSubmit={createTask}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
@@ -246,7 +246,7 @@ export default function ModuleAdminClient() {
                 </div>
 
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justify: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <label style={{ fontSize: '11px', fontWeight: '900', color: 'var(--muted)', textTransform: 'uppercase' }}>Test Cases</label>
                     <button type="button" onClick={addTestCase} style={{ fontSize: '11px', fontWeight: '900', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Plus size={12} /> ADD CASE
@@ -328,7 +328,7 @@ export default function ModuleAdminClient() {
               className="glass-panel"
               style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)', transition: 'transform 0.2s' }}
             >
-              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--background)', display: 'flex', alignItems: 'center', justify: 'center', border: '1px solid var(--border)' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
                 {task.type === 'coding' ? <Code2 size={20} /> : task.type === 'mcq' ? <ListTodo size={20} /> : <FileText size={20} />}
               </div>
               <div style={{ flex: 1 }}>
@@ -337,7 +337,7 @@ export default function ModuleAdminClient() {
               </div>
               <button
                 onClick={() => deleteTask(task._id)}
-                style={{ p: '8px', borderRadius: '10px', background: 'var(--danger)10', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
+                style={{ padding: '8px', borderRadius: '10px', background: 'var(--danger)10', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
               >
                 <Trash2 size={16} />
               </button>
