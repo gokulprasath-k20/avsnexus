@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { getApiUrl } from '@/lib/api';
 
 interface Notification {
   _id: string;
@@ -23,7 +24,7 @@ export default function NotificationBell() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications');
+      const res = await fetch(getApiUrl('/api/notifications'));
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications);
@@ -49,7 +50,7 @@ export default function NotificationBell() {
   }, []);
 
   const markAllRead = async () => {
-    await fetch('/api/notifications', { method: 'PATCH', body: JSON.stringify({}), headers: { 'Content-Type': 'application/json' } });
+    await fetch(getApiUrl('/api/notifications'), { method: 'PATCH', body: JSON.stringify({}), headers: { 'Content-Type': 'application/json' } });
     setUnreadCount(0);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };

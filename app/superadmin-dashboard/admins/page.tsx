@@ -38,7 +38,7 @@ export default function SuperAdminAdminsPage() {
   const handleExport = async () => {
     setExportLoading(true);
     try {
-      const res = await fetch('/api/export/admin-panel');
+      const res = await fetch(getApiUrl('/api/export/admin-panel'));
       if (!res.ok) throw new Error('Export failed');
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);

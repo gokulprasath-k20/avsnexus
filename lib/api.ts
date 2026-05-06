@@ -1,15 +1,30 @@
-export const getApiUrl = (path: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  // Ensure we don't double slash
+const PRODUCTION_URL = 'https://avsnexus.vercel.app';
+
+export const getApiUrl = (path: string): string => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  
-  // In Capacitor/Production, we need the full URL
-  // In local web dev, relative paths work if it's the same origin
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    // On localhost web, always prefer relative paths to avoid CORS issues
-    // with production API URLs in .env.local
+
+  // Server-side rendering: always relative
+  if (typeof window === 'undefined') {
     return cleanPath;
   }
-  
-  return baseUrl ? `${baseUrl}${cleanPath}` : cleanPath;
+
+  const hostname = window.location.hostname;
+
+  // Localhost dev → relative paths (no CORS issues)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return cleanPath;
+  }
+
+  // Capacitor native WebView (capacitor://localhost or ionic://)
+  // Must use full production URL
+  if (
+    window.location.protocol === 'capacitor:' ||
+    window.location.protocol === 'ionic:' ||
+    hostname === 'localhost' && window.location.port === ''
+  ) {
+    return `${PRODUCTION_URL}${cleanPath}`;
+  }
+
+  // Deployed web (vercel) → relative paths work fine
+  return cleanPath;
 };

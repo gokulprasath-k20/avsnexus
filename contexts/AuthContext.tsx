@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseBrowser';
+import { getApiUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 interface User {
@@ -39,9 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const supabase = createClient();
 
-  const syncUserWithBackend = async (supabaseUser: any) => {
+  const syncUserWithBackend = async (_supabaseUser: any) => {
     try {
-      const res = await fetch('/api/auth/me');
+      // Use getApiUrl so Capacitor WebView uses full production URL
+      const res = await fetch(getApiUrl('/api/auth/me'));
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -86,8 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (error) throw new Error(error.message);
 
-    // Sync with backend to get MongoDB user data and set old token cookie
-    const res = await fetch('/api/auth/login', {
+    // Use getApiUrl — critical for Capacitor APK to reach the Vercel backend
+    const res = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ supabaseId: data.user.id, email }),
@@ -97,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(backendData.error || 'Backend sync failed');
 
     setUser(backendData.user);
-    
+
     const userRole = backendData.user.role.toLowerCase();
     if (userRole === 'student') {
       router.push('/student-dashboard');
@@ -109,45 +111,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signup = async (
-    name: string, 
-    registerNumber: string, 
-    password: string, 
-    department: string, 
-    year: number, 
-    category: string, 
+    name: string,
+    registerNumber: string,
+    password: string,
+    department: string,
+    year: number,
+    category: string,
     section: string,
     role: string = 'student',
     email?: string
   ) => {
-    // Determine internal email
     const internalEmail = email || `${registerNumber}@avs.com`;
 
     const { data, error } = await supabase.auth.signUp({
       email: internalEmail,
       password,
       options: {
-        data: {
-          name,
-          registerNumber,
-          role
-        }
+        data: { name, registerNumber, role }
       }
     });
 
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error('Signup failed');
 
-    // Create user in MongoDB
-    const res = await fetch('/api/auth/signup', {
+    // Use getApiUrl for Capacitor compatibility
+    const res = await fetch(getApiUrl('/api/auth/signup'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         supabaseId: data.user.id,
-        name, 
-        registerNumber, 
-        department, 
-        year, 
-        category, 
+        name,
+        registerNumber,
+        department,
+        year,
+        category,
         section,
         role,
         email: internalEmail
@@ -158,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(backendData.error || 'MongoDB sync failed');
 
     setUser(backendData.user);
-    
+
     const userRole = backendData.user.role.toLowerCase();
     if (userRole === 'student') {
       router.push('/student-dashboard');
@@ -171,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch(getApiUrl('/api/auth/logout'), { method: 'POST' });
     setUser(null);
     router.push('/login');
   };
