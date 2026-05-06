@@ -167,6 +167,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    // 1. Remove FCM token from backend and local storage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('fcm_token') : null;
+    if (token) {
+      await fetch(getApiUrl('/api/users/fcm-token'), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token })
+      }).catch(() => {});
+      if (typeof window !== 'undefined') localStorage.removeItem('fcm_token');
+    }
+
+    // 2. Sign out of Supabase & clear backend session
     await supabase.auth.signOut();
     await fetch(getApiUrl('/api/auth/logout'), { method: 'POST' });
     setUser(null);

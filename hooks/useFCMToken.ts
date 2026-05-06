@@ -70,11 +70,7 @@ export function useFCMToken() {
           return;
         }
 
-        // 5. Check if already saved to avoid redundant API calls
-        const stored = localStorage.getItem('fcm_token');
-        if (stored === token) return;
-
-        // 6. Save to backend
+        // 5. Always save to backend (idempotent $addToSet ensures no duplicates)
         const res = await fetch(getApiUrl('/api/users/fcm-token'), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -84,7 +80,7 @@ export function useFCMToken() {
 
         if (res.ok) {
           localStorage.setItem('fcm_token', token);
-          console.log('[FCM] Token registered successfully');
+          console.log('[FCM] Token registered successfully to DB');
         }
 
         // 7. Handle foreground messages (when app is open)
