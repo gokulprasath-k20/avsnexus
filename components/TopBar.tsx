@@ -2,6 +2,7 @@
 
 import React from 'react';
 import NotificationBell from './NotificationBell';
+import { InstallButton } from './InstallPrompt';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Moon, Sun, LogOut } from 'lucide-react';
@@ -70,6 +71,9 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {/* PWA Install Button — shows only in browser, hidden when already installed */}
+        <InstallButton />
+
         {user?.role === 'student' && (
           <div
             className="flex items-center gap-1 px-2 py-1 bg-[var(--surface)] rounded-full border border-[var(--border)]"
