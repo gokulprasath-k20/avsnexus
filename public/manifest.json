@@ -2,23 +2,25 @@
   "name": "AVS Nexus — Skill Platform",
   "short_name": "AVS Nexus",
   "description": "Modular student skill evaluation platform with coding challenges, MCQs, and real-time assessments.",
-  "start_url": "/student-dashboard",
+  "start_url": "/login",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
-  "background_color": "#F8F7FF",
-  "theme_color": "#A855F7",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
