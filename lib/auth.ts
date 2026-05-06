@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, JWTPayload } from './jwt';
 import { createClient } from './supabaseServer';
+import connectDB from './db';
+import User from '@/models/User';
 
 export function getTokenFromRequest(request: NextRequest): string | null {
   const cookieToken = request.cookies.get('token')?.value;
@@ -19,11 +21,7 @@ export function requireAuth(
 ) {
   return async (request: NextRequest, context?: any) => {
     try {
-      // 1. Check Supabase Session first (Modern)
-      const supabase = await createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // 2. Fallback to existing JWT (Compatibility)
+      // 1. Check existing JWT (Fastest)
       const token = getTokenFromRequest(request);
       let user: JWTPayload | null = null;
 
@@ -35,21 +33,37 @@ export function requireAuth(
         }
       }
 
-      // If no user found via JWT, and no session found via Supabase, unauthorized
-      if (!user && !session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      // 2. Fallback: Check Supabase Session if JWT is missing/invalid
+      if (!user) {
+        const supabase = await createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Reconstruct user payload from DB using Supabase ID
+          await connectDB();
+          const dbUser = await User.findOne({ 
+            $or: [
+              { supabaseId: session.user.id },
+              { email: session.user.email }
+            ]
+          }).lean();
+
+          if (dbUser) {
+            user = {
+              userId: dbUser._id.toString(),
+              registerNumber: dbUser.registerNumber,
+              email: dbUser.email,
+              role: dbUser.role,
+              name: dbUser.name,
+              assignedModuleType: dbUser.assignedModuleType,
+            };
+          }
+        }
       }
 
-      // If we have a session but no local user object yet, 
-      // we should probably let the handler proceed if it doesn't strictly need the JWTPayload
-      // or we can reconstruct it.
-      // For "keeping logic unchanged", we prefer the JWTPayload.
-      
+      // Final check
       if (!user) {
-        // If we only have Supabase session, we might need to fetch the user from DB
-        // But to keep logic simple and "unchanged", we rely on the fact that 
-        // login/signup set the 'token' cookie.
-        return NextResponse.json({ error: 'Session sync required' }, { status: 401 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
       if (allowedRoles && !allowedRoles.includes(user.role)) {
