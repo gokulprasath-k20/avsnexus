@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bell, Send, Users, Filter, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Bell, Send, Users, Filter, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApiUrl } from '@/lib/api';
 
@@ -12,12 +12,9 @@ interface NotificationFormProps {
 export default function NotificationForm({ role }: NotificationFormProps) {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [target, setTarget] = useState<'all' | 'filters'>('all');
-  const [filters, setFilters] = useState({
-    department: '',
-    year: '',
-    section: '',
-  });
+  const [filters, setFilters] = useState({ department: '', year: '', section: '' });
   const [loading, setLoading] = useState(false);
 
   const departments = ['CSE', 'IT', 'ECE', 'EEE', 'BME', 'AIDS', 'MECH', 'CIVIL', 'OTHER'];
@@ -29,35 +26,31 @@ export default function NotificationForm({ role }: NotificationFormProps) {
       toast.error('Title and message are required');
       return;
     }
-
     setLoading(true);
     try {
       const response = await fetch(getApiUrl('/api/notifications/send'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           title,
           message,
+          image: imageUrl || undefined,
           target: role === 'superadmin' ? target : 'filters',
           filters: target === 'filters' || role === 'moduleAdmin' ? filters : null,
           url: '/student-dashboard',
         }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         toast.success(`Sent to ${data.recipientCount || 0} recipients`);
         setTitle('');
         setMessage('');
+        setImageUrl('');
       } else {
         toast.error(data.error || 'Failed to send notification');
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('An error occurred');
     } finally {
       setLoading(false);
@@ -77,6 +70,7 @@ export default function NotificationForm({ role }: NotificationFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Title */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
             Notification Title
@@ -91,6 +85,7 @@ export default function NotificationForm({ role }: NotificationFormProps) {
           />
         </div>
 
+        {/* Message */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
             Message Content
@@ -105,6 +100,30 @@ export default function NotificationForm({ role }: NotificationFormProps) {
           />
         </div>
 
+        {/* Image URL */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
+            Image URL{' '}
+            <span className="text-[8px] normal-case font-medium opacity-50">(optional)</span>
+          </label>
+          <input
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://res.cloudinary.com/... or any image URL"
+            className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all"
+          />
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="preview"
+              className="mt-2 w-full max-h-36 object-cover rounded-xl border border-[var(--border)]"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          )}
+        </div>
+
+        {/* Target Audience (superadmin only) */}
         {role === 'superadmin' && (
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
@@ -139,38 +158,33 @@ export default function NotificationForm({ role }: NotificationFormProps) {
           </div>
         )}
 
+        {/* Filters */}
         {(target === 'filters' || role === 'moduleAdmin') && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[var(--background)] rounded-2xl border border-[var(--border)] animate-in fade-in slide-in-from-top-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[var(--background)] rounded-2xl border border-[var(--border)]">
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
-                Department
-              </label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">Department</label>
               <select
                 value={filters.department}
                 onChange={(e) => setFilters({ ...filters, department: e.target.value })}
                 className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs font-bold outline-none"
               >
                 <option value="">All Departments</option>
-                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                {departments.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
-                Year
-              </label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">Year</label>
               <select
                 value={filters.year}
                 onChange={(e) => setFilters({ ...filters, year: e.target.value })}
                 className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs font-bold outline-none"
               >
                 <option value="">All Years</option>
-                {years.map(y => <option key={y} value={y}>{y} Year</option>)}
+                {years.map((y) => <option key={y} value={y}>{y} Year</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">
-                Section
-              </label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--muted)] ml-1">Section</label>
               <input
                 type="text"
                 value={filters.section}
@@ -182,6 +196,7 @@ export default function NotificationForm({ role }: NotificationFormProps) {
           </div>
         )}
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}

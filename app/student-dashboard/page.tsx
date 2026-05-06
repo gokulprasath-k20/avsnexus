@@ -1,280 +1,341 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import { useAuth } from '@/contexts/AuthContext';
 import { getApiUrl } from '@/lib/api';
 import Link from 'next/link';
-import { BookOpen, Trophy, CheckCircle, Clock, TrendingUp, ArrowRight, Star } from 'lucide-react';
+import DeadlineCountdown from '@/components/DeadlineCountdown';
+import {
+  CheckCircle2, Clock, XCircle, ArrowRight,
+  Code2, FileText, Cpu, ChevronRight, RotateCcw,
+  Zap, Trophy,
+} from 'lucide-react';
 
-interface Module {
+type Tab = 'available' | 'completed' | 'failed';
+
+interface StudentTask {
   _id: string;
-  name: string;
-  type: string;
-  icon: string;
-  description: string;
+  status: Tab;
+  deadlineTime?: string;
+  taskId: {
+    _id: string;
+    title: string;
+    description: string;
+    type: string;
+    stage: string;
+    points: number;
+    allowedLanguages?: string[];
+    duration?: number;
+    moduleId?: { _id: string; name: string };
+    topic?: string;
+  };
 }
 
-interface Task {
-  _id: string;
-  moduleId: string;
-  title: string;
-}
+const STAGE_COLOR: Record<string, string> = {
+  easy: '#22c55e',
+  intermediate: '#f59e0b',
+  expert: '#ef4444',
+};
 
-interface Submission {
-  _id: string;
-  taskId: { _id: string; title: string };
-  status: string;
-  submittedAt: string;
-}
+const TYPE_ICON: Record<string, React.ReactNode> = {
+  coding: <Code2 size={12} strokeWidth={2.5} />,
+  mcq: <Cpu size={12} strokeWidth={2.5} />,
+  file_upload: <FileText size={12} strokeWidth={2.5} />,
+};
 
-interface StatsCard {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: string;
-}
+const TAB_CONFIG = [
+  {
+    key: 'available' as Tab,
+    label: 'Available',
+    icon: <Clock size={13} strokeWidth={2.5} />,
+    color: 'var(--primary)',
+    emptyIcon: '📭',
+    emptyMsg: 'No tasks available right now',
+    emptyHint: 'New tasks will appear here when your admin adds them.',
+  },
+  {
+    key: 'completed' as Tab,
+    label: 'Completed',
+    icon: <CheckCircle2 size={13} strokeWidth={2.5} />,
+    color: '#22c55e',
+    emptyIcon: '🏆',
+    emptyMsg: 'No completed tasks yet',
+    emptyHint: 'Complete tasks to see them here.',
+  },
+  {
+    key: 'failed' as Tab,
+    label: 'Failed',
+    icon: <XCircle size={13} strokeWidth={2.5} />,
+    color: '#ef4444',
+    emptyIcon: '😌',
+    emptyMsg: 'No failed tasks',
+    emptyHint: "Great job keeping up with deadlines!",
+  },
+];
 
-export default function DashboardPage() {
+export default function StudentDashboard() {
   const { user } = useAuth();
-  const [modules, setModules] = useState<Module[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [totalTasks, setTotalTasks] = useState<Task[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>('available');
+  const [tasks, setTasks] = useState<StudentTask[]>([]);
+  const [tabCounts, setTabCounts] = useState({ available: 0, completed: 0, failed: 0 });
   const [loading, setLoading] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [modRes, subRes, taskRes] = await Promise.all([
-          fetch(getApiUrl('/api/modules')),
-          fetch(getApiUrl('/api/submissions')),
-          fetch(getApiUrl('/api/tasks'))
-        ]);
-        
-        const modData = await modRes.json();
-        const subData = await subRes.json();
-        const taskData = await taskRes.json();
-
-        setModules(modData.modules || []);
-        
-        // Filter submissions that are completed (pass or accepted)
-        const completedSubs = (subData.submissions || []).filter((s: any) => 
-          s.status === 'pass' || s.status === 'accepted' || s.status === 'needs_review'
-        );
-        setSubmissions(completedSubs);
-        
-        setTotalTasks(taskData.tasks || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const fetchTasks = useCallback(async (tab: Tab, silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await fetch(getApiUrl(`/api/student-tasks?tab=${tab}`), {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTasks(data.studentTasks || []);
+        if (data.tabCounts) setTabCounts(data.tabCounts);
       }
-    };
-
-    fetchData();
+    } catch { /* ignore */ }
+    finally { if (!silent) setLoading(false); }
   }, []);
 
-  const completedTaskIds = new Set(submissions.map(s => typeof s.taskId === 'object' ? s.taskId._id : s.taskId));
-  const completedCount = completedTaskIds.size;
-  const availableCount = totalTasks.length - completedCount;
+  // Initial load + tab switch
+  useEffect(() => {
+    fetchTasks(activeTab);
+  }, [activeTab, fetchTasks]);
 
+  // Polling every 30s for real-time updates
+  useEffect(() => {
+    pollRef.current = setInterval(() => fetchTasks(activeTab, true), 30_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [activeTab, fetchTasks]);
 
-
-  const moduleTypeColors: Record<string, string> = {
-    coding: '#1d4ed8',
-    mcq: '#7c3aed',
-    file_upload: '#059669',
-    design: '#d97706',
-  };
-
-  const moduleTypeLabels: Record<string, string> = {
-    coding: 'Code Challenge',
-    mcq: 'MCQ',
-    file_upload: 'File Upload',
-    design: 'Design',
-  };
-
-
-  const stats: StatsCard[] = [
-    {
-      label: 'Points',
-      value: (user?.totalPoints || 0).toLocaleString(),
-      icon: <Star size={14} />,
-      color: 'var(--warning)',
-    },
-    {
-      label: 'Available',
-      value: Math.max(0, availableCount),
-      icon: <BookOpen size={14} />,
-      color: 'var(--primary)',
-    },
-    {
-      label: 'Completed',
-      value: completedCount,
-      icon: <CheckCircle size={14} />,
-      color: 'var(--success)',
-    },
-    {
-      label: 'Streak',
-      value: `${user?.currentStreak || 0}D`,
-      icon: <TrendingUp size={14} />,
-      color: 'var(--danger)',
-    },
-  ];
-
-  // Filtering for Available Tasks (pending)
-  const availableTasks = totalTasks.filter(t => !completedTaskIds.has(t._id));
-  
-  const getModuleInfo = (moduleId: string) => {
-    return modules.find(m => m._id === moduleId);
-  };
+  const activeTabConfig = TAB_CONFIG.find((t) => t.key === activeTab)!;
 
   return (
-    <AppShell
-      title={`Hi, ${user?.name?.split(' ')[0]} 👋`}
-      subtitle={`${user?.registerNumber || ''} • ${user?.department || ''}`}
-    >
-      {/* Stats row - Ultra Compact Sticky-ready */}
-      <div className="grid grid-cols-4 gap-1 mb-4 sticky top-0 z-10 py-2 bg-[var(--background)]/80 backdrop-blur-md">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="glass-panel rounded-xl p-2.5 flex flex-col items-center justify-center text-center border border-[var(--border)]"
-          >
-            <div className="mb-0.5" style={{ color: stat.color }}>{stat.icon}</div>
-            <p className="text-[14px] font-black text-[var(--foreground)] tracking-tight leading-none mb-0.5">
-              {stat.value}
-            </p>
-            <p className="text-[7px] text-[var(--muted)] uppercase tracking-widest font-black">
-              {stat.label}
+    <AppShell title="My Tasks" subtitle="Track your progress">
+      {/* ── Header ── */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--foreground)', lineHeight: 1 }}>
+              {user?.name?.split(' ')[0] ?? 'Student'}&apos;s Tasks
+            </h2>
+            <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+              {user?.totalPoints ?? 0} pts · {user?.department ?? ''} {user?.year ? `Year ${user.year}` : ''}
             </p>
           </div>
-        ))}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            borderRadius: '10px', padding: '6px 10px',
+          }}>
+            <Trophy size={12} strokeWidth={2.5} style={{ color: '#f59e0b' }} />
+            <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--foreground)' }}>
+              {user?.totalPoints ?? 0}
+            </span>
+            <span style={{ fontSize: '10px', color: 'var(--muted)' }}>pts</span>
+          </div>
+        </div>
+
+        {/* Quick stats */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px',
+        }}>
+          {TAB_CONFIG.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              style={{
+                background: activeTab === t.key ? t.color : 'var(--surface)',
+                border: `1px solid ${activeTab === t.key ? t.color : 'var(--border)'}`,
+                borderRadius: '10px', padding: '8px',
+                cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+              }}
+            >
+              <span style={{
+                fontSize: '16px', fontWeight: '900',
+                color: activeTab === t.key ? 'white' : 'var(--foreground)',
+              }}>
+                {(tabCounts as any)[t.key]}
+              </span>
+              <span style={{
+                fontSize: '9px', fontWeight: '700', textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: activeTab === t.key ? 'rgba(255,255,255,0.85)' : 'var(--muted)',
+              }}>
+                {t.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-6 pb-20">
-        {/* Available Tasks Section */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5 px-1">
-            <h3 className="text-[10px] font-black text-[var(--muted)] uppercase tracking-widest flex items-center gap-2">
-              <Clock size={10} /> Available Tasks ({availableTasks.length})
-            </h3>
-          </div>
+      {/* ── Tab Selector ── */}
+      <div style={{
+        display: 'flex', gap: '6px', marginBottom: '14px',
+        borderBottom: '1px solid var(--border)', paddingBottom: '0',
+      }}>
+        {TAB_CONFIG.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '8px 12px', fontSize: '11px', fontWeight: '800',
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+              background: 'none', border: 'none',
+              borderBottom: `2px solid ${activeTab === t.key ? t.color : 'transparent'}`,
+              color: activeTab === t.key ? t.color : 'var(--muted)',
+              cursor: 'pointer', transition: 'all 0.15s',
+              marginBottom: '-1px',
+            }}
+          >
+            {t.icon}
+            {t.label}
+            {(tabCounts as any)[t.key] > 0 && (
+              <span style={{
+                background: activeTab === t.key ? t.color : 'var(--border)',
+                color: activeTab === t.key ? 'white' : 'var(--muted)',
+                borderRadius: '10px', padding: '0px 5px',
+                fontSize: '9px', fontWeight: '900',
+              }}>
+                {(tabCounts as any)[t.key]}
+              </span>
+            )}
+          </button>
+        ))}
 
-          {loading ? (
-            <div className="space-y-2">
-              {[1, 2].map(i => (
-                <div key={i} className="h-16 glass-panel rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : availableTasks.length === 0 ? (
-            <div className="glass-panel rounded-xl p-6 text-center border-dashed">
-              <Trophy size={24} className="mx-auto mb-2 text-[var(--warning)] opacity-50" />
-              <p className="text-[10px] text-[var(--muted)] font-black uppercase">All Caught Up! Great Job.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2">
-              {availableTasks.slice(0, 8).map((task) => {
-                const module = getModuleInfo(task.moduleId);
-                const taskLink = module?.type === 'coding' ? `/playground/${task._id}` : `/tasks/${task._id}`;
-                return (
-                  <Link key={task._id} href={taskLink} className="no-underline group">
-                    <div className="glass-panel rounded-xl p-3 flex items-center justify-between hover:border-[var(--primary)]/50 transition-all active:scale-[0.98]">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 text-sm">
-                          {module?.icon || '📝'}
-                        </div>
-                        <div className="overflow-hidden">
-                          <h4 className="text-[12px] font-black text-[var(--foreground)] leading-tight truncate">
-                            {task.title}
-                          </h4>
-                          <p className="text-[8px] text-[var(--muted)] font-black uppercase tracking-tight truncate">
-                            {module?.name || 'Skill Module'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[8px] font-black text-[var(--muted)] bg-[var(--surface-hover)] px-2 py-0.5 rounded-md border border-[var(--border)] uppercase">
-                          Pending
-                        </span>
-                        <ArrowRight size={12} className="text-[var(--primary)] opacity-50 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        {/* Refresh button */}
+        <button
+          onClick={() => fetchTasks(activeTab)}
+          title="Refresh"
+          style={{
+            marginLeft: 'auto', background: 'none', border: 'none',
+            color: 'var(--muted)', cursor: 'pointer', padding: '8px',
+          }}
+        >
+          <RotateCcw size={12} strokeWidth={2.5} />
+        </button>
+      </div>
 
-        {/* Skill Modules Quick Access - Compact Carousel-style grid */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5 px-1">
-            <h3 className="text-[10px] font-black text-[var(--muted)] uppercase tracking-widest flex items-center gap-2">
-              <BookOpen size={10} /> Skill Modules
-            </h3>
-            <Link href="/modules" className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest">
-              View All
-            </Link>
+      {/* ── Task List ── */}
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{
+              height: '90px', borderRadius: '12px',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              animation: 'pulse 1.5s infinite',
+            }} />
+          ))}
+        </div>
+      ) : tasks.length === 0 ? (
+        <div style={{
+          textAlign: 'center', padding: '48px 24px',
+          background: 'var(--surface)', borderRadius: '16px',
+          border: '1px solid var(--border)',
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+            {activeTabConfig.emptyIcon}
           </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-            {modules.map((module) => (
-              <Link key={module._id} href={`/modules/${module._id}`} className="shrink-0 w-[140px] no-underline">
-                <div className="glass-panel rounded-xl p-3 h-full border border-[var(--border)] hover:border-[var(--primary)]/30 transition-all">
-                  <div className="text-lg mb-1">{module.icon}</div>
-                  <h4 className="text-[10px] font-black text-[var(--foreground)] leading-tight mb-1 line-clamp-1">{module.name}</h4>
-                  <div className="text-[7px] font-black text-[var(--muted)] uppercase">
-                    {totalTasks.filter(t => t.moduleId === module._id && !completedTaskIds.has(t._id)).length} Available
+          <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--foreground)', marginBottom: '4px' }}>
+            {activeTabConfig.emptyMsg}
+          </p>
+          <p style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            {activeTabConfig.emptyHint}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {tasks.map((st) => {
+            const task = st.taskId;
+            if (!task) return null;
+
+            const isLocked = st.status === 'failed';
+            const isCompleted = st.status === 'completed';
+
+            return (
+              <Link
+                key={st._id}
+                href={isLocked ? '#' : `/tasks/${task._id}`}
+                onClick={(e) => isLocked && e.preventDefault()}
+                style={{ textDecoration: 'none', color: 'inherit', opacity: isLocked ? 0.7 : 1 }}
+              >
+                <div
+                  style={{
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: '14px', padding: '12px 14px',
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    transition: 'all 0.15s',
+                    cursor: isLocked ? 'not-allowed' : 'pointer',
+                    borderLeft: `3px solid ${isCompleted ? '#22c55e' : isLocked ? '#ef4444' : 'var(--primary)'}`,
+                  }}
+                  onMouseEnter={(e) => !isLocked && (e.currentTarget.style.background = 'var(--surface-hover)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface)')}
+                >
+                  {/* Type icon */}
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '10px',
+                    background: isCompleted ? 'rgba(34,197,94,0.1)' : isLocked ? 'rgba(239,68,68,0.1)' : 'var(--primary-fade)',
+                    color: isCompleted ? '#22c55e' : isLocked ? '#ef4444' : 'var(--primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    {isCompleted ? <CheckCircle2 size={16} strokeWidth={2.5} /> :
+                     isLocked ? <XCircle size={16} strokeWidth={2.5} /> :
+                     TYPE_ICON[task.type] || <Zap size={14} />}
                   </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{
+                        fontSize: '13px', fontWeight: '800',
+                        color: 'var(--foreground)',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        maxWidth: '160px',
+                      }}>
+                        {task.title}
+                      </span>
+                      <span style={{
+                        fontSize: '8px', fontWeight: '900', textTransform: 'uppercase',
+                        color: STAGE_COLOR[task.stage] || 'var(--muted)',
+                        background: `${STAGE_COLOR[task.stage]}18`,
+                        padding: '1px 5px', borderRadius: '4px',
+                        letterSpacing: '0.05em',
+                      }}>
+                        {task.stage}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px', flexWrap: 'wrap' }}>
+                      {task.moduleId && (
+                        <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: '600' }}>
+                          {task.moduleId.name}
+                        </span>
+                      )}
+                      <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: '700' }}>
+                        ⚡ {task.points} pts
+                      </span>
+                      {/* Deadline countdown */}
+                      {st.deadlineTime && !isCompleted && (
+                        <DeadlineCountdown
+                          deadlineTime={st.deadlineTime}
+                          status={st.status}
+                          compact
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Arrow */}
+                  {!isLocked && (
+                    <ChevronRight size={14} strokeWidth={2.5} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+                  )}
                 </div>
               </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Completed Tasks History - High Density */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5 px-1">
-            <h3 className="text-[10px] font-black text-[var(--muted)] uppercase tracking-widest flex items-center gap-2">
-              <CheckCircle size={10} /> Recently Completed
-            </h3>
-          </div>
-
-          {submissions.length === 0 ? (
-            <div className="glass-panel rounded-xl p-6 text-center border-dashed opacity-50">
-              <p className="text-[9px] text-[var(--muted)] font-black uppercase">No completed tasks yet</p>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {submissions.slice(0, 5).map((sub) => (
-                <div 
-                  key={sub._id}
-                  className="glass-panel rounded-xl p-2.5 flex items-center justify-between bg-[var(--surface)]/30 border border-[var(--border)] opacity-80"
-                >
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <div className="w-6 h-6 rounded bg-[var(--success)]/10 text-[var(--success)] flex items-center justify-center shrink-0">
-                      <CheckCircle size={12} />
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className="text-[11px] font-bold text-[var(--foreground)] leading-tight truncate">
-                        {sub.taskId?.title || 'Task'}
-                      </p>
-                      <p className="text-[7px] text-[var(--muted)] font-black uppercase tracking-tighter">
-                        Done {new Date(sub.submittedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-[7px] font-black text-[var(--success)] bg-[var(--success)]/10 px-1.5 py-0.5 rounded uppercase border border-[var(--success)]/20">
-                    Verified
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+            );
+          })}
+        </div>
+      )}
     </AppShell>
   );
 }
-

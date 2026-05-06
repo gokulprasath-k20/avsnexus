@@ -10,7 +10,7 @@ export const POST = requireAuth(
     try {
       await connectDB();
 
-      const { title, message, target, filters, url } = await req.json();
+      const { title, message, image, target, filters, url } = await req.json();
 
       if (!title || !message || !target) {
         return NextResponse.json({ error: 'Missing required fields: title, message, target' }, { status: 400 });
@@ -32,6 +32,7 @@ export const POST = requireAuth(
         userId: s._id,
         title,
         message,
+        ...(image ? { image } : {}),
         type: 'announcement',
         link: url || '/student-dashboard',
       }));

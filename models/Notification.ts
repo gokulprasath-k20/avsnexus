@@ -5,6 +5,9 @@ export type NotificationType =
   | 'new_task'
   | 'score_updated'
   | 'module_assigned'
+  | 'announcement'
+  | 'deadline_reminder'
+  | 'task_failed'
   | 'system';
 
 export interface INotification extends Document {
@@ -12,6 +15,7 @@ export interface INotification extends Document {
   type: NotificationType;
   title: string;
   message: string;
+  image?: string;
   link?: string;
   isRead: boolean;
   createdAt: Date;
@@ -27,12 +31,16 @@ const NotificationSchema = new Schema<INotification>(
         'new_task',
         'score_updated',
         'module_assigned',
+        'announcement',
+        'deadline_reminder',
+        'task_failed',
         'system',
       ],
       required: true,
     },
     title: { type: String, required: true },
     message: { type: String, required: true },
+    image: { type: String },
     link: { type: String },
     isRead: { type: Boolean, default: false },
   },
@@ -40,6 +48,7 @@ const NotificationSchema = new Schema<INotification>(
 );
 
 NotificationSchema.index({ userId: 1, isRead: 1 });
+NotificationSchema.index({ userId: 1, createdAt: -1 });
 
 const Notification: Model<INotification> =
   mongoose.models.Notification ||

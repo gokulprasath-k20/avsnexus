@@ -37,6 +37,7 @@ export interface ITask extends Document {
   maxFileSizeMB?: number;
   submissionGuidelines?: string;
   isActive: boolean;
+  duration?: number; // deadline in minutes (0 = no deadline)
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -84,6 +85,7 @@ const TaskSchema = new Schema<ITask>(
     allowedFormats: [{ type: String }],
     maxFileSizeMB: { type: Number, default: 10 },
     submissionGuidelines: { type: String },
+    duration: { type: Number, default: 0 }, // deadline minutes
     isActive: { type: Boolean, default: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },

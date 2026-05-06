@@ -56,6 +56,8 @@ export default function ModuleAdminClient() {
     allowedFormats: '.pdf,.pptx',
     maxFileSizeMB: 10,
     submissionGuidelines: '',
+    // Deadline
+    duration: 0, // minutes, 0 = no deadline
   });
 
   const fetchData = () => {
@@ -106,6 +108,7 @@ export default function ModuleAdminClient() {
       stage: form.stage,
       points: Number(form.points),
       topic: form.topic,
+      duration: Number(form.duration),
     };
 
     if (moduleType === 'coding') {
@@ -196,6 +199,18 @@ export default function ModuleAdminClient() {
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>Topic</label>
                 <input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} placeholder="e.g. Arrays, Sorting..." style={{ width: '100%', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>⏱ Deadline (minutes)</label>
+                <input
+                  type="number"
+                  value={form.duration}
+                  onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}
+                  min={0}
+                  placeholder="0 = No deadline"
+                  style={{ width: '100%', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }}
+                />
+                <p style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '4px' }}>Set 0 for no deadline. E.g. 120 = 2 hours</p>
               </div>
             </div>
 
