@@ -150,11 +150,21 @@ export default function NotificationBell() {
               <button
                 onClick={async () => {
                   try {
-                    const res = await fetch('/api/notifications/test', { method: 'POST' });
+                    const { getApiUrl } = await import('@/lib/api');
+                    const res = await fetch(getApiUrl('/api/notifications/test'), { 
+                      method: 'POST',
+                      credentials: 'include'
+                    });
                     const data = await res.json();
-                    if (data.success) fetchNotifications();
+                    if (data.success) {
+                      fetchNotifications();
+                      alert(data.message);
+                    } else {
+                      alert('Error: ' + data.error);
+                    }
                   } catch (e) {
                     console.error(e);
+                    alert('Failed to send test push');
                   }
                 }}
                 style={{
