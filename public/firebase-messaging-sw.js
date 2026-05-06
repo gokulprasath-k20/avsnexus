@@ -22,9 +22,9 @@ try {
     const notificationTitle = payload.notification?.title || 'AVS Nexus';
     const notificationOptions = {
       body: payload.notification?.body || 'New update available.',
-      icon: '/icon.svg',
+      icon: '/icon-512.png',
       data: payload.data,
-      badge: '/icon.svg'
+      badge: '/icon-512.png'
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);

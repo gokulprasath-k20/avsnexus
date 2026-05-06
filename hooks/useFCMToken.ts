@@ -86,6 +86,22 @@ export function useFCMToken() {
           localStorage.setItem('fcm_token', token);
           console.log('[FCM] Token registered successfully');
         }
+
+        // 7. Handle foreground messages (when app is open)
+        const { onMessage } = await import('firebase/messaging');
+        onMessage(messaging, (payload) => {
+          console.log('[FCM] Foreground message received:', payload);
+          const title = payload.notification?.title || 'AVS Nexus';
+          const options = {
+            body: payload.notification?.body || 'You have a new notification.',
+            icon: '/icon-512.png',
+            badge: '/icon-512.png',
+            data: payload.data,
+          };
+          // Show OS popup even when app is open
+          swReg.showNotification(title, options);
+        });
+
       } catch (err) {
         // Non-fatal — app still works without push
         console.error('[FCM] Setup failed:', err);

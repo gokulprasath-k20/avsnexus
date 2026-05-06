@@ -235,17 +235,7 @@ export default function AdminModulesPage() {
                 </div>
               ))}
             </div>
-            <div style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', fontSize: '10px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Description</label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Description..."
-                required
-                rows={2}
-                style={{ width: '100%', padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '5px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }}
-              />
-            </div>
+
             <div style={{ marginBottom: '12px' }}>
               <label style={{ display: 'block', fontSize: '10px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Type</label>
               <div style={{ padding: '6px 10px', fontSize: '11px', border: '1px solid var(--border)', borderRadius: '5px', background: 'var(--surface-hover)', color: 'var(--muted)', cursor: 'not-allowed', fontWeight: '600' }}>
