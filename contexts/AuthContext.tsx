@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseBrowser';
 import { getApiUrl } from '@/lib/api';
@@ -39,15 +39,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
+  // Track if we're in an explicit logout to suppress the null-session auto-clear
+  const isLoggingOut = useRef(false);
 
-  const syncUserWithBackend = async (_supabaseUser: any) => {
+  const syncUserWithBackend = async (_supabaseUser: any): Promise<User | null> => {
     try {
-      // Use getApiUrl so Capacitor WebView uses full production URL
-      const res = await fetch(getApiUrl('/api/auth/me'));
+      const res = await fetch(getApiUrl('/api/auth/me'), {
+        credentials: 'include',
+      });
+
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
         return data.user;
+      }
+
+      // JWT cookie expired — re-issue it silently using the Supabase session
+      if (_supabaseUser?.email) {
+        const retryRes = await fetch(getApiUrl('/api/auth/login'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            supabaseId: _supabaseUser.id,
+            email: _supabaseUser.email,
+          }),
+        });
+        if (retryRes.ok) {
+          const retryData = await retryRes.json();
+          setUser(retryData.user);
+          return retryData.user;
+        }
       }
       return null;
     } catch (error) {
@@ -57,22 +79,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
+    let mounted = true;
+
+    // ─── Step 1: Eagerly restore session on mount (handles refresh / app-open) ───
+    const restoreSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && mounted) {
         await syncUserWithBackend(session.user);
-      } else {
-        setUser(null);
       }
-      setLoading(false);
-    });
+      if (mounted) setLoading(false);
+    };
+
+    restoreSession();
+
+    // ─── Step 2: Stay in sync for token refresh & explicit sign-in/sign-out ───
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        if (event === 'SIGNED_OUT') {
+          // Only clear user when WE triggered the logout
+          if (isLoggingOut.current) {
+            setUser(null);
+          }
+          return;
+        }
+
+        if (session) {
+          // Covers SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED
+          await syncUserWithBackend(session.user);
+          setLoading(false);
+        }
+      }
+    );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshUser = async () => {
-    await syncUserWithBackend(null);
+    const { data: { session } } = await supabase.auth.getSession();
+    await syncUserWithBackend(session?.user ?? null);
   };
 
   const login = async (identifier: string, password: string) => {
@@ -81,17 +131,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email = `${identifier}@avs.com`;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
 
-    // Use getApiUrl — critical for Capacitor APK to reach the Vercel backend
     const res = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ supabaseId: data.user.id, email }),
     });
 
@@ -126,18 +172,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email: internalEmail,
       password,
-      options: {
-        data: { name, registerNumber, role }
-      }
+      options: { data: { name, registerNumber, role } },
     });
 
     if (error) throw new Error(error.message);
     if (!data.user) throw new Error('Signup failed');
 
-    // Use getApiUrl for Capacitor compatibility
     const res = await fetch(getApiUrl('/api/auth/signup'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         supabaseId: data.user.id,
         name,
@@ -147,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         category,
         section,
         role,
-        email: internalEmail
+        email: internalEmail,
       }),
     });
 
@@ -167,22 +211,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    // 1. Remove FCM token from backend and local storage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('fcm_token') : null;
-    if (token) {
+    isLoggingOut.current = true;
+
+    // 1. Remove FCM token from backend
+    const fcmToken = typeof window !== 'undefined' ? localStorage.getItem('fcm_token') : null;
+    if (fcmToken) {
       await fetch(getApiUrl('/api/users/fcm-token'), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token: fcmToken }),
       }).catch(() => {});
-      if (typeof window !== 'undefined') localStorage.removeItem('fcm_token');
+      localStorage.removeItem('fcm_token');
     }
 
-    // 2. Sign out of Supabase & clear backend session
+    // 2. Sign out of Supabase & clear backend JWT cookie
     await supabase.auth.signOut();
-    await fetch(getApiUrl('/api/auth/logout'), { method: 'POST' });
+    await fetch(getApiUrl('/api/auth/logout'), { method: 'POST', credentials: 'include' });
+
     setUser(null);
+    isLoggingOut.current = false;
     router.push('/login');
   };
 
