@@ -198,110 +198,24 @@ export default function ModuleAdminClient() {
                 <input type="number" value={form.points} onChange={(e) => setForm({ ...form, points: Number(e.target.value) })} min={1} style={{ width: '100%', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>Topic</label>
-                <input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} placeholder="e.g. Arrays, Sorting..." style={{ width: '100%', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>⏱ Deadline (minutes)</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>⏱ Time Limit (minutes)</label>
                 <input
                   type="number"
                   value={form.duration}
                   onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}
                   min={0}
-                  placeholder="0 = No deadline"
+                  placeholder="0 = No time limit"
                   style={{ width: '100%', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }}
                 />
-                <p style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '4px' }}>Set 0 for no deadline. E.g. 120 = 2 hours</p>
+                <p style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '4px' }}>Set 0 for no time limit.</p>
               </div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>Description / Problem Statement</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required placeholder="Full problem description..." rows={4} style={{ width: '100%', padding: '12px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>Question / Problem Statement</label>
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required placeholder="Enter the full question..." rows={4} style={{ width: '100%', padding: '12px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
             </div>
 
-            {module.type === 'coding' && (
-              <>
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '10px', color: 'var(--muted)', textTransform: 'uppercase' }}>Allowed Languages & Starter Code</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-                    {LANGUAGES.map(lang => (
-                      <button
-                        key={lang.value}
-                        type="button"
-                        onClick={() => toggleLanguage(lang.value)}
-                        style={{
-                          padding: '8px 16px',
-                          borderRadius: '10px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          border: '1px solid var(--border)',
-                          background: form.allowedLanguages.includes(lang.value) ? 'var(--primary)' : 'var(--background)',
-                          color: form.allowedLanguages.includes(lang.value) ? 'white' : 'var(--foreground)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {lang.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {form.allowedLanguages.map(lang => (
-                    <div key={lang} style={{ marginBottom: '10px' }}>
-                      <label style={{ display: 'block', fontSize: '10px', fontWeight: '800', marginBottom: '4px', color: 'var(--muted)' }}>Starter Code ({LANGUAGES.find(l => l.value === lang)?.label})</label>
-                      <textarea
-                        value={form.starterCode[lang] || ''}
-                        onChange={(e) => setForm({ ...form, starterCode: { ...form.starterCode, [lang]: e.target.value } })}
-                        placeholder={`// Starter code for ${lang}...`}
-                        rows={3}
-                        style={{ width: '100%', padding: '8px 12px', fontSize: '12px', fontFamily: 'monospace', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }}
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <label style={{ fontSize: '11px', fontWeight: '900', color: 'var(--muted)', textTransform: 'uppercase' }}>Test Cases</label>
-                    <button type="button" onClick={addTestCase} style={{ fontSize: '11px', fontWeight: '900', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Plus size={12} /> ADD CASE
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {form.testCases.map((tc, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px 40px', gap: '10px', alignItems: 'center', background: 'var(--background)', padding: '10px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                        <input value={tc.input} onChange={(e) => setForm({ ...form, testCases: form.testCases.map((t, i) => i === idx ? { ...t, input: e.target.value } : t) })} placeholder="Input" style={{ padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
-                        <input value={tc.expectedOutput} onChange={(e) => setForm({ ...form, testCases: form.testCases.map((t, i) => i === idx ? { ...t, expectedOutput: e.target.value } : t) })} placeholder="Output" style={{ padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: '700', color: 'var(--muted)' }}>
-                          <input type="checkbox" checked={tc.isHidden} onChange={(e) => setForm({ ...form, testCases: form.testCases.map((t, i) => i === idx ? { ...t, isHidden: e.target.checked } : t) })} /> HIDDEN
-                        </label>
-                        <button type="button" onClick={() => removeTestCase(idx)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {module.type === 'mcq' && (
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '8px', color: 'var(--muted)', textTransform: 'uppercase' }}>Options (Select the correct one)</label>
-                {form.options.map((opt, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <input type="radio" name="correct" checked={opt.isCorrect} onChange={() => setForm({ ...form, options: form.options.map((o, i) => ({ ...o, isCorrect: i === idx })) })} />
-                    <input value={opt.text} onChange={(e) => setForm({ ...form, options: form.options.map((o, i) => i === idx ? { ...o, text: e.target.value } : o) })} placeholder={`Option ${idx + 1}`} style={{ flex: 1, padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {module.type === 'file_upload' && (
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: '900', marginBottom: '6px', color: 'var(--muted)', textTransform: 'uppercase' }}>Submission Guidelines</label>
-                <textarea value={form.submissionGuidelines} onChange={(e) => setForm({ ...form, submissionGuidelines: e.target.value })} placeholder="Instructions for students..." rows={3} style={{ width: '100%', padding: '12px 14px', fontSize: '14px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
-              </div>
-            )}
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
               <button type="submit" style={{ padding: '12px 24px', background: 'var(--foreground)', color: 'var(--background)', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '900', cursor: 'pointer', textTransform: 'uppercase' }}>Save Task</button>

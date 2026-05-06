@@ -61,12 +61,7 @@ export default function AdminModulesPage() {
       description: '',
       stage: 'easy',
       points: 10,
-      topic: '',
-      starterCode: '',
-      options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }],
-      allowedFormats: '.pdf,.pptx',
-      maxFileSizeMB: 10,
-      submissionGuidelines: '',
+      duration: 0,
     }]);
   };
 
@@ -115,20 +110,8 @@ export default function AdminModulesPage() {
             type: form.type,
             stage: t.stage,
             points: Number(t.points),
-            topic: t.topic,
+            duration: Number(t.duration) || 0,
           };
-
-          if (form.type === 'coding' && t.starterCode) {
-            payload.starterCode = { python: t.starterCode };
-          }
-          if (form.type === 'mcq') {
-            payload.options = t.options.filter((o: any) => o.text);
-          }
-          if (form.type === 'file_upload') {
-            payload.allowedFormats = t.allowedFormats.split(',').map((f: string) => f.trim());
-            payload.maxFileSizeMB = Number(t.maxFileSizeMB);
-            payload.submissionGuidelines = t.submissionGuidelines;
-          }
 
           return fetch(getApiUrl('/api/tasks'), {
             method: 'POST',
@@ -304,55 +287,21 @@ export default function AdminModulesPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Points</label>
                       <input type="number" value={task.points} onChange={(e) => updateTask(idx, 'points', Number(e.target.value))} min={1} style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Category</label>
-                      <input value={task.topic} onChange={(e) => updateTask(idx, 'topic', e.target.value)} placeholder="Topic" style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
+                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Time Limit (Minutes)</label>
+                      <input type="number" value={task.duration} onChange={(e) => updateTask(idx, 'duration', Number(e.target.value))} min={0} placeholder="0 = No limit" style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
                     </div>
                   </div>
 
                   <div style={{ marginBottom: '8px' }}>
-                    <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Description</label>
+                    <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Question</label>
                     <textarea value={task.description} onChange={(e) => updateTask(idx, 'description', e.target.value)} required placeholder="Problem details..." rows={2} style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
                   </div>
-
-                  {form.type === 'coding' && (
-                    <div style={{ marginBottom: '4px' }}>
-                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Starter Code</label>
-                      <textarea value={task.starterCode} onChange={(e) => updateTask(idx, 'starterCode', e.target.value)} placeholder="def solution()..." rows={2} style={{ width: '100%', padding: '5px 8px', fontSize: '11px', fontFamily: 'monospace', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
-                    </div>
-                  )}
-
-                  {form.type === 'mcq' && (
-                    <div style={{ marginBottom: '4px' }}>
-                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Options</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        {task.options.map((opt: any, optIdx: number) => (
-                          <div key={optIdx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <input type="radio" name={`correct-${idx}`} checked={opt.isCorrect} onChange={() => {
-                              const newOpts = task.options.map((o: any, i: number) => ({ ...o, isCorrect: i === optIdx }));
-                              updateTask(idx, 'options', newOpts);
-                            }} />
-                            <input value={opt.text} onChange={(e) => {
-                              const newOpts = task.options.map((o: any, i: number) => i === optIdx ? { ...o, text: e.target.value } : o);
-                              updateTask(idx, 'options', newOpts);
-                            }} required placeholder={`Opt ${optIdx + 1}`} style={{ flex: 1, padding: '3px 6px', fontSize: '11px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none' }} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {form.type === 'file_upload' && (
-                    <div style={{ marginBottom: '4px' }}>
-                      <label style={{ display: 'block', fontSize: '9px', fontWeight: '700', color: 'var(--muted)', marginBottom: '3px', textTransform: 'uppercase' }}>Guidelines</label>
-                      <textarea value={task.submissionGuidelines} onChange={(e) => updateTask(idx, 'submissionGuidelines', e.target.value)} placeholder="Instructions..." rows={1} style={{ width: '100%', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--surface)', color: 'var(--foreground)', outline: 'none', resize: 'vertical' }} />
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
