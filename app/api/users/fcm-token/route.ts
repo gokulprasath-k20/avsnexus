@@ -1,34 +1,42 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
-import jwt from 'jsonwebtoken';
+import { requireAuth } from '@/lib/auth';
 
-export async function POST(req: Request) {
+// PATCH /api/users/fcm-token — register FCM token for current user
+export const PATCH = requireAuth(async (request: NextRequest, user) => {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    await connectDB();
+    const { token } = await request.json();
 
-    const token = authHeader.split(' ')[1];
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-
-    const { token: fcmToken } = await req.json();
-
-    if (!fcmToken) {
+    if (!token || typeof token !== 'string') {
       return NextResponse.json({ error: 'Token is required' }, { status: 400 });
     }
 
-    await connectDB();
-    
-    // Add token to user if it doesn't already exist
-    await User.findByIdAndUpdate(decoded.userId, {
-      $addToSet: { fcmTokens: fcmToken }
+    await User.findByIdAndUpdate(user.userId, {
+      $addToSet: { fcmTokens: token },
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error saving FCM token:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (err) {
+    console.error('FCM token save error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});
+
+// Keep legacy POST for backward-compat (same logic)
+export const POST = PATCH;
+
+// DELETE /api/users/fcm-token — remove token on logout
+export const DELETE = requireAuth(async (request: NextRequest, user) => {
+  try {
+    await connectDB();
+    const { token } = await request.json();
+    if (token) {
+      await User.findByIdAndUpdate(user.userId, { $pull: { fcmTokens: token } });
+    }
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+});

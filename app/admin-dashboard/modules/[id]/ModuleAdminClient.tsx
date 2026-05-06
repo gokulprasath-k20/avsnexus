@@ -62,8 +62,8 @@ export default function ModuleAdminClient() {
 
   const fetchData = () => {
     Promise.all([
-      fetch(getApiUrl(`/api/modules/${id}`)).then((r) => r.json()),
-      fetch(getApiUrl(`/api/tasks?moduleId=${id}`)).then((r) => r.json()),
+      fetch(getApiUrl(`/api/modules/${id}`), { credentials: 'include' }).then((r) => r.json()),
+      fetch(getApiUrl(`/api/tasks?moduleId=${id}`), { credentials: 'include' }).then((r) => r.json()),
     ]).then(([modData, taskData]) => {
       setModule(modData.module);
       setTasks(taskData.tasks || []);
@@ -129,6 +129,7 @@ export default function ModuleAdminClient() {
       const res = await fetch(getApiUrl('/api/tasks'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
       const data = await res.json();

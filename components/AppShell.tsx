@@ -5,6 +5,8 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import BottomNav from './BottomNav';
 
+import { useFCMToken } from '@/hooks/useFCMToken';
+
 interface AppShellProps {
   children: React.ReactNode;
   title: string;
@@ -12,6 +14,8 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children, title, subtitle }: AppShellProps) {
+  useFCMToken();
+
   return (
     <div className="flex min-h-screen bg-transparent p-2 md:p-4">
       <div className="flex-1 flex flex-col md:flex-row glass-panel rounded-[32px] overflow-hidden shadow-2xl relative">

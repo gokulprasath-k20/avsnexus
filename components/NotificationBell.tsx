@@ -147,6 +147,23 @@ export default function NotificationBell() {
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/notifications/test', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) fetchNotifications();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                style={{
+                  fontSize: '10px', fontWeight: '800', color: 'var(--muted)',
+                  background: 'none', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
+                }}
+              >
+                Test Push
+              </button>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}

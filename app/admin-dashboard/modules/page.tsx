@@ -43,7 +43,7 @@ export default function AdminModulesPage() {
   }, [user?.assignedModuleType]);
 
   const fetchModules = () => {
-    fetch(getApiUrl('/api/modules'))
+    fetch(getApiUrl('/api/modules'), { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => setModules(d.modules || []))
       .catch((err) => {
@@ -98,6 +98,7 @@ export default function AdminModulesPage() {
       const res = await fetch(getApiUrl('/api/modules'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -132,6 +133,7 @@ export default function AdminModulesPage() {
           return fetch(getApiUrl('/api/tasks'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(payload),
           }).then((r) => r.json());
         });
