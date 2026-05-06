@@ -32,17 +32,16 @@ export default function NotificationForm({ role }: NotificationFormProps) {
 
     setLoading(true);
     try {
-      const jwtToken = localStorage.getItem('token');
       const response = await fetch(getApiUrl('/api/notifications/send'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`,
         },
+        credentials: 'include',
         body: JSON.stringify({
           title,
           message,
-          target: role === 'superadmin' ? target : 'filters', // Module admin always uses filters (implicitly their module)
+          target: role === 'superadmin' ? target : 'filters',
           filters: target === 'filters' || role === 'moduleAdmin' ? filters : null,
           url: '/student-dashboard',
         }),
