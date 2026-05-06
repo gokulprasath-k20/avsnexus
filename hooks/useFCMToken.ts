@@ -26,10 +26,16 @@ const firebaseConfig = {
 export function useFCMToken() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!('Notification' in window)) return;
-    if (!('serviceWorker' in navigator)) return;
+    if (!('Notification' in window)) {
+      console.warn('Notifications not supported');
+      return;
+    }
+    if (!('serviceWorker' in navigator)) {
+      console.warn('Service Workers not supported');
+      return;
+    }
     if (!VAPID_KEY) {
-      console.warn('[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY not set');
+      alert('[FCM Debug] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing! Vercel environment variables need to be updated.');
       return;
     }
 
@@ -38,7 +44,7 @@ export function useFCMToken() {
         // 1. Request permission
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-          console.log('[FCM] Notification permission denied');
+          alert('[FCM Debug] Notification permission was DENIED by the browser. Please reset site settings and allow.');
           return;
         }
 
@@ -66,7 +72,7 @@ export function useFCMToken() {
         });
 
         if (!token) {
-          console.warn('[FCM] No token received');
+          alert('[FCM Debug] Failed to generate FCM token from Firebase.');
           return;
         }
 
@@ -81,6 +87,9 @@ export function useFCMToken() {
         if (res.ok) {
           localStorage.setItem('fcm_token', token);
           console.log('[FCM] Token registered successfully to DB');
+        } else {
+          const errData = await res.json();
+          alert('[FCM Debug] Failed to save token to database: ' + JSON.stringify(errData));
         }
 
         // 7. Handle foreground messages (when app is open)
@@ -98,9 +107,10 @@ export function useFCMToken() {
           swReg.showNotification(title, options);
         });
 
-      } catch (err) {
+      } catch (err: any) {
         // Non-fatal — app still works without push
         console.error('[FCM] Setup failed:', err);
+        alert('[FCM Debug] Setup Error: ' + err.message);
       }
     };
 
